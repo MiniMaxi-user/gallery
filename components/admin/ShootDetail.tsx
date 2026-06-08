@@ -1,0 +1,256 @@
+'use client';
+
+import Image from 'next/image';
+import { useState, useRef, useEffect, ChangeEvent } from 'react';
+import { statusBadge, generatePassword, apiFetch } from './utils';
+import type { Shoot } from './types';
+
+interface Props {
+  shoot:     Shoot;
+  onBack:    () => void;
+  onUpdated: (shoot: Shoot) => void;
+  onDeleted: () => void;
+}
+
+export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, onDeleted }: Props) {
+  const [shoot, setShoot]           = useState(initialShoot);
+  const [name, setName]             = useState(initialShoot.name);
+  const [date, setDate]             = useState(initialShoot.date);
+  const [clientName, setClientName] = useState(initialShoot.clientName);
+  const [clientEmail, setClientEmail] = useState(initialShoot.clientEmail);
+  const [password, setPassword]     = useState(initialShoot.password);
+  const [editSaved, setEditSaved]   = useState(false);
+  const [uploading, setUploading]   = useState(false);
+  const [uploadText, setUploadText] = useState('');
+  const [uploadPct, setUploadPct]   = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setShoot(initialShoot);
+    setName(initialShoot.name);
+    setDate(initialShoot.date);
+    setClientName(initialShoot.clientName);
+    setClientEmail(initialShoot.clientEmail);
+    setPassword(initialShoot.password);
+  }, [initialShoot]);
+
+  const galleryUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/gallery/${shoot.id}`
+    : `/gallery/${shoot.id}`;
+
+  async function saveDetails() {
+    if (!name || !clientName || !clientEmail) { alert('Vul alle verplichte velden in.'); return; }
+    try {
+      const updated = await apiFetch(`/api/shoots/${shoot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, date, clientName, clientEmail, password }),
+      });
+      setShoot(updated);
+      onUpdated(updated);
+      setEditSaved(true);
+      setTimeout(() => setEditSaved(false), 2500);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Opslaan mislukt');
+    }
+  }
+
+  async function setKlaar(klaar: boolean) {
+    try {
+      const body = klaar ? { status: 'klaar' } : { status: null };
+      const updated = await apiFetch(`/api/shoots/${shoot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      setShoot(updated);
+      onUpdated(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Opslaan mislukt');
+    }
+  }
+
+  async function deleteShoot() {
+    if (!confirm(`Shoot "${shoot.name}" verwijderen?\n\nAlle foto's worden ook verwijderd. Weet je het zeker?`)) return;
+    try {
+      await apiFetch(`/api/shoots/${shoot.id}`, { method: 'DELETE' });
+      onDeleted();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Verwijderen mislukt');
+    }
+  }
+
+  async function handleUpload(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setUploading(true);
+    let current = shoot;
+
+    for (let i = 0; i < files.length; i++) {
+      setUploadText(`Uploaden ${i + 1} van ${files.length}: ${files[i].name}`);
+      setUploadPct(Math.round((i / files.length) * 100));
+      const fd = new FormData();
+      fd.append('file', files[i]);
+      fd.append('shootId', String(shoot.id));
+      try {
+        const result = await apiFetch('/api/upload', { method: 'POST', body: fd });
+        current = { ...current, photos: [...current.photos, result.url] };
+        setShoot(current);
+        onUpdated(current);
+      } catch {
+        alert(`Upload mislukt voor ${files[i].name}`);
+      }
+    }
+
+    setUploadPct(100);
+    setUploadText(`${files.length} foto${files.length !== 1 ? "'s" : ''} geüpload`);
+    setTimeout(() => { setUploading(false); setUploadPct(0); }, 2000);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(galleryUrl).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = galleryUrl;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  }
+
+  const badge     = statusBadge(shoot);
+  const photos    = shoot.photos ?? [];
+  const selections = new Set(shoot.selections ?? []);
+
+  return (
+    <div>
+      <nav className="bg-white border-b border-warm-border px-6 py-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <button className="btn-ghost" onClick={onBack}>← Dashboard</button>
+          <span className="text-warm-border">|</span>
+          <Image src="/logo.png" alt="" width={52} height={52} />
+          <span className="font-semibold">{shoot.name}</span>
+        </div>
+      </nav>
+
+      <main className="max-w-4xl mx-auto px-6 py-8 flex flex-col gap-4">
+
+        {/* Status */}
+        <div className="card flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="text-xs font-medium text-warm-muted mb-1.5">Status</p>
+            <span className={`badge ${badge.cls}`}>{badge.label}</span>
+          </div>
+          <div className="flex gap-2">
+            {shoot.status !== 'klaar'
+              ? <button className="btn-secondary text-sm" onClick={() => setKlaar(true)}>Markeer als Klaar</button>
+              : <button className="btn-secondary text-sm" onClick={() => setKlaar(false)}>Status terugzetten</button>
+            }
+            <button className="btn-danger text-sm" onClick={deleteShoot}>Verwijderen</button>
+          </div>
+        </div>
+
+        {/* Edit */}
+        <div className="card">
+          <h3 className="font-semibold mb-4">Gegevens bewerken</h3>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="label">Naam shoot</label>
+              <input className="input" value={name} onChange={e => setName(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Datum</label>
+              <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="mb-3">
+            <label className="label">Naam klant</label>
+            <input className="input" value={clientName} onChange={e => setClientName(e.target.value)} />
+          </div>
+          <div className="mb-3">
+            <label className="label">E-mail klant</label>
+            <input className="input" type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} />
+          </div>
+          <div className="mb-4">
+            <label className="label">Wachtwoord klant</label>
+            <div className="flex gap-2">
+              <input className="input flex-1" value={password} onChange={e => setPassword(e.target.value)} />
+              <button type="button" className="btn-secondary whitespace-nowrap" onClick={() => setPassword(generatePassword())}>Genereer</button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="btn-primary" onClick={saveDetails}>Opslaan</button>
+            {editSaved && <span className="text-sage text-sm font-medium">✓ Opgeslagen</span>}
+          </div>
+        </div>
+
+        {/* Gallery link */}
+        <div className="card">
+          <p className="text-xs font-medium mb-2">Galerij-link voor klant:</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <a href={galleryUrl} target="_blank" rel="noreferrer" className="text-sage text-sm underline break-all">
+              {galleryUrl}
+            </a>
+            <button className="btn-secondary text-xs px-2.5 py-1" onClick={copyLink}>Kopieer</button>
+          </div>
+        </div>
+
+        {/* Upload */}
+        <div className="card">
+          <h3 className="font-semibold mb-3">Foto&apos;s uploaden</h3>
+          <input ref={fileInputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/*" className="hidden" onChange={handleUpload} />
+          <div className="flex items-center gap-3 flex-wrap">
+            <button className="btn-primary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+              Bladeren door bestanden
+            </button>
+            <span className="text-xs text-warm-muted">JPG, PNG · meerdere bestanden tegelijk mogelijk</span>
+          </div>
+          {uploading && (
+            <div className="mt-3">
+              <p className="text-xs text-warm-muted mb-1.5">{uploadText}</p>
+              <div className="h-1.5 bg-cream-300 rounded-full overflow-hidden">
+                <div className="h-full bg-sage rounded-full transition-all" style={{ width: `${uploadPct}%` }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Photos */}
+        <div className="card">
+          <div className="mb-3">
+            <h3 className="font-semibold">Foto&apos;s ({photos.length})</h3>
+            <p className="text-xs text-warm-muted mt-0.5">
+              {selections.size > 0 ? `${selections.size} foto's geselecteerd door klant` : 'Nog geen selectie ontvangen.'}
+            </p>
+          </div>
+          {photos.length === 0 ? (
+            <p className="text-warm-muted text-sm">Nog geen foto&apos;s geüpload.</p>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+              {photos.map((url, i) => {
+                const sel = selections.has(url);
+                return (
+                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-sage' : 'border-transparent'}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block" />
+                    {sel && (
+                      <div className="absolute top-1.5 left-1.5 bg-sage text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                        ✓ {i + 1}
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1 text-[11px] text-white truncate">
+                      {url.split('/').pop()}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+      </main>
+    </div>
+  );
+}

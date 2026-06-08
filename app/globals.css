@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream-50 text-warm-text;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full border border-warm-border rounded-lg px-3 py-2 text-sm bg-cream-50 text-warm-text outline-none transition-colors focus:border-sage;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-sage text-white hover:bg-sage-hover disabled:bg-sage-light;
+  }
+
+  .btn-secondary {
+    @apply btn bg-cream-100 text-warm-text hover:bg-cream-200;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-50 text-red-700 border border-red-200 hover:bg-red-100;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-warm-muted text-sm cursor-pointer underline;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-warm-border p-6;
+  }
+
+  .label {
+    @apply block text-xs font-medium text-warm-text mb-1;
+  }
+
+  .error-box {
+    @apply bg-red-50 text-red-700 rounded-lg px-3 py-2 text-sm;
+  }
+
+  .info-box {
+    @apply bg-sage-bg text-sage-dark rounded-lg px-3 py-3 text-sm leading-relaxed;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap;
+  }
+
+  .photo-zoom-btn {
+    @apply absolute top-2 right-2 bg-black/52 text-white w-7 h-7 rounded-md
+           flex items-center justify-center transition-opacity p-0 opacity-0;
+  }
+
+  .photo-item:hover .photo-zoom-btn {
+    opacity: 1;
+  }
+}

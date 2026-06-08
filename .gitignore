@@ -1,0 +1,20 @@
+# Next.js
+.next/
+node_modules/
+.env*.local
+.vercel
+*.tsbuildinfo
+
+# Oude bestanden (niet meer nodig)
+index.html
+admin.html
+gallery.html
+upload.php
+save-data.php
+delete-shoot.php
+config.json
+data.json
+uploads/
+
+# Gevoelige bestanden
+ftp-config.json
