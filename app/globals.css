@@ -55,11 +55,11 @@
   }
 
   .photo-zoom-btn {
-    @apply absolute top-2 right-2 bg-black/52 text-white w-7 h-7 rounded-md
-           flex items-center justify-center transition-opacity p-0 opacity-0;
+    @apply absolute top-2 right-2 text-white w-7 h-7 rounded-md flex items-center justify-center transition-opacity p-0 opacity-0;
+    background-color: rgba(0, 0, 0, 0.52);
   }
+}
 
-  .photo-item:hover .photo-zoom-btn {
-    opacity: 1;
-  }
+.photo-item:hover .photo-zoom-btn {
+  opacity: 1;
 }
