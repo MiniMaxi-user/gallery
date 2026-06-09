@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import AuthView    from './AuthView';
 import Dashboard   from './Dashboard';
@@ -61,13 +62,12 @@ export default function AdminApp() {
     setView('dashboard');
   }
 
-  // Check session on mount
   useEffect(() => {
     loadShoots().then(ok => { if (ok) setView('dashboard'); });
   }, [loadShoots]);
 
   if (loading && view === 'auth') {
-    return <div className="min-h-screen flex items-center justify-center text-warm-muted text-sm">Laden…</div>;
+    return <div className="min-h-screen flex items-center justify-center text-velaro-muted text-sm">Laden…</div>;
   }
 
   if (view === 'auth') {
@@ -97,16 +97,22 @@ export default function AdminApp() {
   if (view === 'settings') {
     return (
       <div>
-        <nav className="bg-white border-b border-warm-border px-6 py-3">
+        <nav className="bg-velaro-surf1 border-b border-white/[0.08] px-6 py-4">
           <div className="max-w-4xl mx-auto flex items-center gap-3">
             <button className="btn-ghost" onClick={() => setView('dashboard')}>← Dashboard</button>
+            <span className="text-white/20">|</span>
+            <Image src="/logo.png" alt="Velaro" width={140} height={32} />
           </div>
         </nav>
-        <main className="max-w-4xl mx-auto px-6 py-8 max-w-lg">
-          <div className="card">
-            <h2 className="font-semibold text-sm mb-2">Admin wachtwoord wijzigen</h2>
-            <p className="text-xs text-warm-muted leading-relaxed">
-              Pas <code className="bg-cream-100 px-1.5 py-0.5 rounded text-xs">ADMIN_PASSWORD</code> aan in je Vercel environment variables en herdeployeer.
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          <div className="card max-w-lg">
+            <h2 className="font-serif text-xl font-light mb-3">Admin wachtwoord wijzigen</h2>
+            <p className="text-sm text-velaro-muted leading-relaxed">
+              Pas{' '}
+              <code className="bg-velaro-surf2 border border-white/[0.08] px-1.5 py-0.5 rounded text-xs font-mono text-velaro-gold">
+                ADMIN_PASSWORD
+              </code>{' '}
+              aan in je Vercel environment variables en herdeployeer.
             </p>
           </div>
         </main>
@@ -114,7 +120,6 @@ export default function AdminApp() {
     );
   }
 
-  // dashboard
   return (
     <Dashboard
       shoots={shoots}

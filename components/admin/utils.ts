@@ -1,10 +1,10 @@
 import type { Shoot } from './types';
 
 export function statusBadge(s: Shoot): { cls: string; label: string } {
-  if (s.status === 'klaar')          return { cls: 'bg-green-100 text-green-800',  label: 'Klaar' };
-  if (!s.photos || s.photos.length === 0) return { cls: 'bg-gray-100 text-gray-600',   label: "Geen foto's" };
-  if (!s.selectionSubmitted)         return { cls: 'bg-orange-100 text-orange-700', label: 'Wacht op selectie' };
-  return                                    { cls: 'bg-purple-100 text-purple-700', label: 'Selectie verzonden' };
+  if (s.status === 'klaar')               return { cls: 'bg-green-500/15 text-green-300',    label: 'Klaar' };
+  if (!s.photos || s.photos.length === 0) return { cls: 'bg-white/8 text-velaro-muted',      label: "Geen foto's" };
+  if (!s.selectionSubmitted)              return { cls: 'bg-amber-400/15 text-amber-300',     label: 'Wacht op selectie' };
+  return                                         { cls: 'bg-velaro-gold/15 text-velaro-gold', label: 'Selectie verzonden' };
 }
 
 export function formatDate(d: string): string {

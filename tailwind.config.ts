@@ -8,27 +8,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: {
-          50:  '#faf7f0',
-          100: '#f3ece0',
-          200: '#e8dfd0',
-          300: '#dfd5c0',
-        },
-        warm: {
-          border: '#d4c9b8',
-          muted:  '#7a6e60',
-          text:   '#3d3228',
-        },
         velaro: {
-          DEFAULT: '#8C6B1F',
-          hover:   '#735619',
-          light:   '#D8BD71',
-          bg:      '#FBF6EA',
-          dark:    '#5C4410',
+          DEFAULT: '#D8BD71',
+          hover:   '#BEA256',
+          light:   '#F2E5B0',
+          bg:      '#0B0B0D',
+          surf1:   '#111214',
+          surf2:   '#16181C',
           gold:    '#D8BD71',
-          amber:   '#BEA256',
-          accent:  '#F2AD75',
+          gold2:   '#BEA256',
+          amber:   '#F2AD75',
+          muted:   '#A3A3A3',
+          dark:    '#0B0B0D',
         },
+      },
+      fontFamily: {
+        serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
+        sans:  ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
     },
   },

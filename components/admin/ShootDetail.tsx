@@ -87,7 +87,6 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
       img.onload = () => {
         URL.revokeObjectURL(url);
         const isLandscape = img.width > img.height;
-        // Portrait: max 600px breed; landscape: max 600px hoog
         const scale = isLandscape
           ? (img.height > 600 ? 600 / img.height : 1)
           : (img.width  > 600 ? 600 / img.width  : 1);
@@ -169,12 +168,12 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
   return (
     <div>
-      <nav className="bg-white border-b-2 border-velaro-gold/60 px-6 py-3">
+      <nav className="bg-velaro-surf1 border-b border-white/[0.08] px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button className="btn-ghost" onClick={onBack}>← Dashboard</button>
-          <span className="text-warm-border">|</span>
-          <Image src="/logo.png" alt="Velaro" width={180} height={40} />
-          <span className="font-semibold">{shoot.name}</span>
+          <span className="text-white/20">|</span>
+          <Image src="/logo.png" alt="Velaro" width={140} height={32} />
+          <span className="font-medium text-white">{shoot.name}</span>
         </div>
       </nav>
 
@@ -183,7 +182,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
         {/* Status */}
         <div className="card flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p className="text-xs font-medium text-warm-muted mb-1.5">Status</p>
+            <p className="label mb-1.5">Status</p>
             <span className={`badge ${badge.cls}`}>{badge.label}</span>
           </div>
           <div className="flex gap-2">
@@ -197,7 +196,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
         {/* Edit */}
         <div className="card">
-          <h3 className="font-semibold mb-4">Gegevens bewerken</h3>
+          <h3 className="font-serif text-xl font-light mb-5">Gegevens bewerken</h3>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label className="label">Naam shoot</label>
@@ -216,7 +215,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
             <label className="label">E-mail klant</label>
             <input className="input" type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} />
           </div>
-          <div className="mb-4">
+          <div className="mb-5">
             <label className="label">Wachtwoord klant</label>
             <div className="flex gap-2">
               <input className="input flex-1" value={password} onChange={e => setPassword(e.target.value)} />
@@ -225,15 +224,15 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
           </div>
           <div className="flex items-center gap-3">
             <button className="btn-primary" onClick={saveDetails}>Opslaan</button>
-            {editSaved && <span className="text-velaro text-sm font-medium">✓ Opgeslagen</span>}
+            {editSaved && <span className="text-velaro-gold text-sm font-medium">✓ Opgeslagen</span>}
           </div>
         </div>
 
         {/* Gallery link */}
         <div className="card">
-          <p className="text-xs font-medium mb-2">Galerij-link voor klant:</p>
+          <p className="label mb-3">Galerij-link voor klant</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <a href={galleryUrl} target="_blank" rel="noreferrer" className="text-velaro text-sm underline break-all">
+            <a href={galleryUrl} target="_blank" rel="noreferrer" className="text-velaro-gold text-sm hover:opacity-80 transition-opacity break-all">
               {galleryUrl}
             </a>
             <button className="btn-secondary text-xs px-2.5 py-1" onClick={copyLink}>Kopieer</button>
@@ -242,19 +241,22 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
         {/* Upload */}
         <div className="card">
-          <h3 className="font-semibold mb-3">Foto&apos;s uploaden</h3>
+          <h3 className="font-serif text-xl font-light mb-4">Foto&apos;s uploaden</h3>
           <input ref={fileInputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/*" className="hidden" onChange={handleUpload} />
           <div className="flex items-center gap-3 flex-wrap">
             <button className="btn-primary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
               Bladeren door bestanden
             </button>
-            <span className="text-xs text-warm-muted">JPG, PNG · meerdere bestanden tegelijk mogelijk</span>
+            <span className="text-xs text-velaro-muted">JPG, PNG · meerdere bestanden tegelijk mogelijk</span>
           </div>
           {uploading && (
-            <div className="mt-3">
-              <p className="text-xs text-warm-muted mb-1.5">{uploadText}</p>
-              <div className="h-1.5 bg-cream-300 rounded-full overflow-hidden">
-                <div className="h-full bg-velaro-amber rounded-full transition-all" style={{ width: `${uploadPct}%` }} />
+            <div className="mt-4">
+              <p className="text-xs text-velaro-muted mb-2">{uploadText}</p>
+              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${uploadPct}%`, background: 'linear-gradient(90deg, #D8BD71, #BEA256)' }}
+                />
               </div>
             </div>
           )}
@@ -262,25 +264,25 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
         {/* Photos */}
         <div className="card">
-          <div className="mb-3">
-            <h3 className="font-semibold">Foto&apos;s ({photos.length})</h3>
-            <p className="text-xs text-warm-muted mt-0.5">
+          <div className="mb-4">
+            <h3 className="font-serif text-xl font-light">Foto&apos;s ({photos.length})</h3>
+            <p className="text-xs text-velaro-muted mt-1">
               {selections.size > 0 ? `${selections.size} foto's geselecteerd door klant` : 'Nog geen selectie ontvangen.'}
             </p>
           </div>
           {photos.length === 0 ? (
-            <p className="text-warm-muted text-sm">Nog geen foto&apos;s geüpload.</p>
+            <p className="text-velaro-muted text-sm">Nog geen foto&apos;s geüpload.</p>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
               {photos.map((url, i) => {
                 const sel = selections.has(url);
                 const canDelete = !shoot.selectionSubmitted && shoot.status !== 'klaar';
                 return (
-                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-amber' : 'border-transparent'}`}>
+                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-gold' : 'border-white/[0.08]'}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block" />
                     {sel && (
-                      <div className="absolute top-1.5 left-1.5 bg-velaro text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <div className="absolute top-1.5 left-1.5 bg-velaro-gold text-velaro-bg text-xs font-semibold px-2 py-0.5 rounded-full">
                         ✓ {i + 1}
                       </div>
                     )}

@@ -39,18 +39,18 @@ export default function NewShootForm({ onBack, onCreated }: Props) {
 
   return (
     <div>
-      <nav className="bg-white border-b border-warm-border px-6 py-3">
+      <nav className="bg-velaro-surf1 border-b border-white/[0.08] px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button className="btn-ghost" onClick={onBack}>← Dashboard</button>
-          <span className="text-warm-border">|</span>
-          <Image src="/logo.png" alt="Velaro" width={180} height={40} />
-          <span className="font-semibold">Nieuwe Shoot</span>
+          <span className="text-white/20">|</span>
+          <Image src="/logo.png" alt="Velaro" width={140} height={32} />
+          <span className="font-medium text-white">Nieuwe Shoot</span>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="card max-w-lg">
-          <h2 className="font-semibold mb-4">Shoot aanmaken</h2>
+          <h2 className="font-serif text-2xl font-light mb-5">Shoot aanmaken</h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="label">Naam shoot</label>
@@ -60,7 +60,7 @@ export default function NewShootForm({ onBack, onCreated }: Props) {
               <label className="label">Datum</label>
               <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} required />
             </div>
-            <hr className="border-warm-border" />
+            <hr className="border-white/[0.08]" />
             <div>
               <label className="label">Naam klant</label>
               <input className="input" value={clientName} onChange={e => setClientName(e.target.value)} required />
@@ -75,10 +75,10 @@ export default function NewShootForm({ onBack, onCreated }: Props) {
                 <input className="input flex-1" value={password} onChange={e => setPassword(e.target.value)} required minLength={4} placeholder="bijv. paard2026" />
                 <button type="button" className="btn-secondary whitespace-nowrap" onClick={() => setPassword(generatePassword())}>Genereer</button>
               </div>
-              <p className="text-xs text-warm-muted mt-1">Deel dit wachtwoord met de klant samen met de galerij-link.</p>
+              <p className="text-xs text-velaro-muted mt-1.5">Deel dit wachtwoord met de klant samen met de galerij-link.</p>
             </div>
             {error && <p className="error-box">{error}</p>}
-            <button className="btn-primary w-full py-2" type="submit" disabled={loading}>
+            <button className="btn-primary w-full py-3" type="submit" disabled={loading}>
               {loading ? 'Bezig…' : 'Shoot aanmaken'}
             </button>
           </form>
