@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import Lightbox from './Lightbox';
+import WatermarkedImage from './WatermarkedImage';
 import type { Shoot } from '@/lib/types';
 
 interface Props {
@@ -230,8 +231,7 @@ export default function GalleryApp({ shootId }: Props) {
                   }`}
                   onClick={() => toggleSelect(url)}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block pointer-events-none" draggable={false} onContextMenu={e => e.preventDefault()} />
+                  <WatermarkedImage src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square block pointer-events-none" coverSquare />
                   {sel && (
                     <div className="absolute inset-0 bg-velaro-gold/15 flex items-center justify-center pointer-events-none">
                       <div className="bg-velaro-gold rounded-full w-8 h-8 flex items-center justify-center">

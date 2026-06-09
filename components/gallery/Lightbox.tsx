@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import WatermarkedImage from './WatermarkedImage';
 
 interface Props {
   photos:   string[];
@@ -57,13 +58,10 @@ export default function Lightbox({ photos, index, selected, submitted, onClose, 
       )}
 
       <div className="max-w-[calc(100vw-160px)] max-h-[calc(100vh-120px)] flex items-center justify-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <WatermarkedImage
           src={url}
           alt={`Foto ${index + 1}`}
-          className="max-w-full max-h-[calc(100vh-120px)] rounded-md block"
-          draggable={false}
-          onContextMenu={e => e.preventDefault()}
+          className="max-w-full max-h-[calc(100vh-120px)] rounded-md"
         />
       </div>
 
