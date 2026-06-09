@@ -185,7 +185,6 @@ export default function GalleryApp({ shootId }: Props) {
         <div className="max-w-[1100px] mx-auto flex items-center justify-between">
           <div>
             <Image src="/logo.png" alt="Velaro" width={140} height={32} />
-            <p className="text-xs text-velaro-muted mt-0.5">{shoot.name}</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-velaro-muted hidden sm:block">Welkom, {session?.clientName}</span>
