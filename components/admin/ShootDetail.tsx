@@ -80,6 +80,28 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     }
   }
 
+  function resizeImage(file: File, maxWidth = 600): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        if (img.width <= maxWidth) { resolve(file); return; }
+        const scale = maxWidth / img.width;
+        const canvas = document.createElement('canvas');
+        canvas.width = maxWidth;
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   async function handleUpload(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
@@ -89,8 +111,9 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     for (let i = 0; i < files.length; i++) {
       setUploadText(`Uploaden ${i + 1} van ${files.length}: ${files[i].name}`);
       setUploadPct(Math.round((i / files.length) * 100));
+      const resized = await resizeImage(files[i]);
       const fd = new FormData();
-      fd.append('file', files[i]);
+      fd.append('file', resized);
       fd.append('shootId', String(shoot.id));
       try {
         const result = await apiFetch('/api/upload', { method: 'POST', body: fd });
