@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { name, email } = await req.json();
+  const { name, email, password } = await req.json();
 
-  if (!name?.trim() || !email?.trim()) {
-    return NextResponse.json({ error: 'Naam en e-mail zijn verplicht' }, { status: 400 });
+  if (!name?.trim() || !email?.trim() || !password?.trim()) {
+    return NextResponse.json({ error: 'Naam, e-mail en wachtwoord zijn verplicht' }, { status: 400 });
   }
 
   const data = await getPlatformData();
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     id:           crypto.randomUUID(),
     name:         name.trim(),
     email:        email.trim().toLowerCase(),
+    password:     password.trim(),
     registeredAt: new Date().toISOString(),
     isActive:     true,
   };

@@ -19,6 +19,7 @@ export interface PhotographerUser {
   id: string;
   name: string;
   email: string;
+  password: string;
   registeredAt: string;
   isActive: boolean;
 }

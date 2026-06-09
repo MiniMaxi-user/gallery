@@ -5,9 +5,10 @@ import { useState, FormEvent } from 'react';
 import { apiFetch } from './utils';
 
 export default function AuthView({ onSuccess }: { onSuccess: () => void }) {
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -15,9 +16,9 @@ export default function AuthView({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await apiFetch('/api/auth', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body:    JSON.stringify({ email, password }),
       });
       onSuccess();
     } catch (err) {
@@ -43,6 +44,18 @@ export default function AuthView({ onSuccess }: { onSuccess: () => void }) {
           </h1>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div>
+            <label className="label">E-mailadres</label>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="naam@studio.nl"
+              autoComplete="email"
+            />
+          </div>
           <div>
             <label className="label">Wachtwoord</label>
             <input

@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [showAddForm,   setShowAddForm]   = useState(false);
   const [addName,       setAddName]       = useState('');
   const [addEmail,      setAddEmail]      = useState('');
+  const [addPassword,   setAddPassword]   = useState('');
   const [addError,      setAddError]      = useState('');
   const [addLoading,    setAddLoading]    = useState(false);
 
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/photographers', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ name: addName, email: addEmail }),
+        body:    JSON.stringify({ name: addName, email: addEmail, password: addPassword }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Toevoegen mislukt');
@@ -89,6 +90,7 @@ export default function AdminDashboard() {
       setShowAddForm(false);
       setAddName('');
       setAddEmail('');
+      setAddPassword('');
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Toevoegen mislukt');
     } finally {
@@ -141,19 +143,37 @@ export default function AdminDashboard() {
           </div>
 
           {showAddForm && (
-            <form onSubmit={handleAddPhotographer} className="card mb-4 flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <label className="label">Naam</label>
-                <input className="input" value={addName} onChange={e => setAddName(e.target.value)} required placeholder="Voornaam Achternaam" />
+            <form onSubmit={handleAddPhotographer} className="card mb-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="label">Naam</label>
+                  <input className="input" value={addName} onChange={e => setAddName(e.target.value)} required placeholder="Voornaam Achternaam" />
+                </div>
+                <div className="flex-1">
+                  <label className="label">E-mail</label>
+                  <input className="input" type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)} required placeholder="naam@studio.nl" />
+                </div>
+                <div className="flex-1">
+                  <label className="label">Wachtwoord</label>
+                  <div className="flex gap-2">
+                    <input className="input" value={addPassword} onChange={e => setAddPassword(e.target.value)} required placeholder="Wachtwoord" autoComplete="off" />
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 text-xs shrink-0"
+                      onClick={() => {
+                        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+                        setAddPassword(Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''));
+                      }}
+                    >
+                      Genereer
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="label">E-mail</label>
-                <input className="input" type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)} required placeholder="naam@studio.nl" />
-              </div>
-              <div className="flex items-end gap-2">
-                {addError && <p className="error-box text-xs">{addError}</p>}
-                <button className="btn-primary px-6 py-3.5" type="submit" disabled={addLoading}>
-                  {addLoading ? 'Bezig…' : 'Toevoegen'}
+              {addError && <p className="error-box text-xs mt-3">{addError}</p>}
+              <div className="flex justify-end mt-4">
+                <button className="btn-primary px-6 py-3" type="submit" disabled={addLoading}>
+                  {addLoading ? 'Bezig…' : 'Fotograaf toevoegen'}
                 </button>
               </div>
             </form>

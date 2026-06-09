@@ -1,18 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getPlatformData } from '@/lib/data';
 
 const SESSION_COOKIE = 'admin_session';
-const SESSION_VALUE  = process.env.ADMIN_SESSION_SECRET ?? 'dev-secret';
+const SESSION_VALUE  = () => process.env.ADMIN_SESSION_SECRET ?? 'dev-secret';
 
 export async function POST(req: NextRequest) {
-  const { password } = await req.json();
+  const { email, password } = await req.json();
 
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ error: 'Onjuist wachtwoord' }, { status: 401 });
+  if (!email || !password) {
+    return NextResponse.json({ error: 'E-mail en wachtwoord zijn verplicht' }, { status: 400 });
+  }
+
+  const data = await getPlatformData();
+  const photographer = data.photographers.find(
+    p => p.email.toLowerCase() === email.toLowerCase() && p.password === password
+  );
+
+  if (!photographer) {
+    return NextResponse.json({ error: 'Onjuiste inloggegevens' }, { status: 401 });
+  }
+
+  if (!photographer.isActive) {
+    return NextResponse.json({ error: 'Account is gedeactiveerd' }, { status: 403 });
   }
 
   const res = NextResponse.json({ success: true });
-  res.cookies.set(SESSION_COOKIE, SESSION_VALUE, {
+  res.cookies.set(SESSION_COOKIE, SESSION_VALUE(), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
