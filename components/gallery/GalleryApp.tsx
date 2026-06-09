@@ -123,8 +123,8 @@ export default function GalleryApp({ shootId }: Props) {
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="card w-full max-w-sm">
           <div className="text-center mb-7">
-            <Image src="/logo.png" alt="Line Photography" width={64} height={64} className="mx-auto mb-2.5" />
-            <h1 className="font-bold text-2xl">Line Photography</h1>
+            <Image src="/logo.png" alt="Velaro" width={200} height={44} className="mx-auto mb-2.5" />
+            <h1 className="font-bold text-2xl">Velaro</h1>
             <p className="text-warm-muted text-sm mt-1.5">Log in om je galerij te bekijken</p>
           </div>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -151,7 +151,7 @@ export default function GalleryApp({ shootId }: Props) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="text-center max-w-sm">
-          <Image src="/logo.png" alt="Line Photography" width={80} height={80} className="mx-auto mb-5" />
+          <Image src="/logo.png" alt="Velaro" width={200} height={44} className="mx-auto mb-5" />
           <h2 className="font-bold text-3xl mb-3">Bedankt!</h2>
           <p className="text-sage text-base leading-relaxed">Je fotoselectie is doorgegeven aan de fotograaf.</p>
           <p className="text-warm-muted text-sm mt-2">{selected.size} foto{selected.size !== 1 ? "'s" : ''} geselecteerd.</p>
@@ -171,7 +171,7 @@ export default function GalleryApp({ shootId }: Props) {
       <nav className="bg-white border-b border-warm-border px-6 py-3">
         <div className="max-w-[1100px] mx-auto flex items-center justify-between">
           <div>
-            <Image src="/logo.png" alt="" width={52} height={52} />
+            <Image src="/logo.png" alt="Velaro" width={180} height={40} />
             <p className="text-xs text-warm-muted mt-0.5">{shoot.name}</p>
           </div>
           <div className="flex items-center gap-4">

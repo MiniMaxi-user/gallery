@@ -18,7 +18,7 @@ export default function Dashboard({ shoots, onOpen, onNew, onSettings, onLogout 
       <nav className="bg-white border-b border-warm-border px-6 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="" width={52} height={52} />
+            <Image src="/logo.png" alt="Velaro" width={180} height={40} />
             <span className="text-xs text-warm-muted">Beheer</span>
           </div>
           <div className="flex gap-2 items-center">

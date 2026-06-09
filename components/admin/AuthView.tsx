@@ -31,8 +31,8 @@ export default function AuthView({ onSuccess }: { onSuccess: () => void }) {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="card w-full max-w-sm">
         <div className="text-center mb-6">
-          <Image src="/logo.png" alt="Line Photography" width={60} height={60} className="mx-auto mb-2" />
-          <h1 className="font-bold text-xl">Line Photography</h1>
+          <Image src="/logo.png" alt="Velaro" width={200} height={44} className="mx-auto mb-2" />
+          <h1 className="font-bold text-xl">Velaro</h1>
           <p className="text-warm-muted text-xs mt-1">Fotografenbeheer</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">

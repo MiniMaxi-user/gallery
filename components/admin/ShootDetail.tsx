@@ -173,7 +173,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button className="btn-ghost" onClick={onBack}>← Dashboard</button>
           <span className="text-warm-border">|</span>
-          <Image src="/logo.png" alt="" width={52} height={52} />
+          <Image src="/logo.png" alt="Velaro" width={180} height={40} />
           <span className="font-semibold">{shoot.name}</span>
         </div>
       </nav>
