@@ -9,22 +9,25 @@ const config: Config = {
     extend: {
       colors: {
         cream: {
-          50:  '#faf7f2',
-          100: '#f0ebe1',
-          200: '#e5ddd0',
-          300: '#ede4d3',
+          50:  '#faf7f0',
+          100: '#f3ece0',
+          200: '#e8dfd0',
+          300: '#dfd5c0',
         },
         warm: {
-          border: '#d4cdc4',
-          muted:  '#7a6e66',
-          text:   '#3d3530',
+          border: '#d4c9b8',
+          muted:  '#7a6e60',
+          text:   '#3d3228',
         },
-        sage: {
-          DEFAULT: '#5c8a6e',
-          hover:   '#4d7a5e',
-          light:   '#9dbdac',
-          bg:      '#eff6f2',
-          dark:    '#065f46',
+        velaro: {
+          DEFAULT: '#8C6B1F',
+          hover:   '#735619',
+          light:   '#D8BD71',
+          bg:      '#FBF6EA',
+          dark:    '#5C4410',
+          gold:    '#D8BD71',
+          amber:   '#BEA256',
+          accent:  '#F2AD75',
         },
       },
     },

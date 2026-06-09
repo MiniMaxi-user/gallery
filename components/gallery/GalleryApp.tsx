@@ -153,7 +153,7 @@ export default function GalleryApp({ shootId }: Props) {
         <div className="text-center max-w-sm">
           <Image src="/logo.png" alt="Velaro" width={200} height={44} className="mx-auto mb-5" />
           <h2 className="font-bold text-3xl mb-3">Bedankt!</h2>
-          <p className="text-sage text-base leading-relaxed">Je fotoselectie is doorgegeven aan de fotograaf.</p>
+          <p className="text-velaro text-base leading-relaxed">Je fotoselectie is doorgegeven aan de fotograaf.</p>
           <p className="text-warm-muted text-sm mt-2">{selected.size} foto{selected.size !== 1 ? "'s" : ''} geselecteerd.</p>
           <button className="btn-ghost mt-7 block mx-auto" onClick={logout}>Uitloggen</button>
         </div>
@@ -168,7 +168,7 @@ export default function GalleryApp({ shootId }: Props) {
 
   return (
     <div>
-      <nav className="bg-white border-b border-warm-border px-6 py-3">
+      <nav className="bg-white border-b-2 border-velaro-gold/60 px-6 py-3">
         <div className="max-w-[1100px] mx-auto flex items-center justify-between">
           <div>
             <Image src="/logo.png" alt="Velaro" width={180} height={40} />
@@ -210,19 +210,19 @@ export default function GalleryApp({ shootId }: Props) {
               return (
                 <div
                   key={url}
-                  className={`photo-item relative rounded-xl overflow-hidden border-[3px] cursor-pointer transition-all hover:shadow-xl select-none ${sel ? 'border-sage shadow-[0_0_0_1px_#5c8a6e]' : 'border-transparent'}`}
+                  className={`photo-item relative rounded-xl overflow-hidden border-[3px] cursor-pointer transition-all hover:shadow-xl select-none ${sel ? 'border-velaro-amber shadow-[0_0_0_1px_#BEA256]' : 'border-transparent'}`}
                   onClick={() => toggleSelect(url)}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block pointer-events-none" draggable={false} onContextMenu={e => e.preventDefault()} />
                   {sel && (
-                    <div className="absolute inset-0 bg-sage/18 flex items-center justify-center pointer-events-none">
-                      <div className="bg-sage rounded-full w-8 h-8 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-velaro-amber/18 flex items-center justify-center pointer-events-none">
+                      <div className="bg-velaro rounded-full w-8 h-8 flex items-center justify-center">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                     </div>
                   )}
-                  <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold text-white pointer-events-none ${sel ? 'bg-sage/85' : 'bg-black/45'}`}>
+                  <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold text-white pointer-events-none ${sel ? 'bg-velaro/85' : 'bg-black/45'}`}>
                     {sel ? '✓ Geselecteerd' : (submitted ? '' : 'Klik om te selecteren')}
                   </div>
                   <button
@@ -241,7 +241,7 @@ export default function GalleryApp({ shootId }: Props) {
         {!submitted && photos.length > 0 && (
           <div className="text-center mt-8">
             <button
-              className="btn-primary px-9 py-3 text-base font-semibold disabled:bg-sage-light disabled:cursor-not-allowed"
+              className="btn-primary px-9 py-3 text-base font-semibold"
               disabled={selCount === 0}
               onClick={submitSelection}
             >

@@ -15,7 +15,7 @@ interface Props {
 export default function Dashboard({ shoots, onOpen, onNew, onSettings, onLogout }: Props) {
   return (
     <div>
-      <nav className="bg-white border-b border-warm-border px-6 py-3">
+      <nav className="bg-white border-b-2 border-velaro-gold/60 px-6 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Image src="/logo.png" alt="Velaro" width={180} height={40} />
@@ -37,7 +37,7 @@ export default function Dashboard({ shoots, onOpen, onNew, onSettings, onLogout 
         {shoots.length === 0 ? (
           <div className="text-center py-16 text-warm-muted">
             <p className="mb-2">Nog geen shoots.</p>
-            <button className="text-sage underline text-sm" onClick={onNew}>Maak je eerste shoot aan</button>
+            <button className="text-velaro underline text-sm" onClick={onNew}>Maak je eerste shoot aan</button>
           </div>
         ) : (
           <div className="flex flex-col gap-3">

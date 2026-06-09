@@ -169,7 +169,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
   return (
     <div>
-      <nav className="bg-white border-b border-warm-border px-6 py-3">
+      <nav className="bg-white border-b-2 border-velaro-gold/60 px-6 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button className="btn-ghost" onClick={onBack}>← Dashboard</button>
           <span className="text-warm-border">|</span>
@@ -225,7 +225,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
           </div>
           <div className="flex items-center gap-3">
             <button className="btn-primary" onClick={saveDetails}>Opslaan</button>
-            {editSaved && <span className="text-sage text-sm font-medium">✓ Opgeslagen</span>}
+            {editSaved && <span className="text-velaro text-sm font-medium">✓ Opgeslagen</span>}
           </div>
         </div>
 
@@ -233,7 +233,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
         <div className="card">
           <p className="text-xs font-medium mb-2">Galerij-link voor klant:</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <a href={galleryUrl} target="_blank" rel="noreferrer" className="text-sage text-sm underline break-all">
+            <a href={galleryUrl} target="_blank" rel="noreferrer" className="text-velaro text-sm underline break-all">
               {galleryUrl}
             </a>
             <button className="btn-secondary text-xs px-2.5 py-1" onClick={copyLink}>Kopieer</button>
@@ -254,7 +254,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
             <div className="mt-3">
               <p className="text-xs text-warm-muted mb-1.5">{uploadText}</p>
               <div className="h-1.5 bg-cream-300 rounded-full overflow-hidden">
-                <div className="h-full bg-sage rounded-full transition-all" style={{ width: `${uploadPct}%` }} />
+                <div className="h-full bg-velaro-amber rounded-full transition-all" style={{ width: `${uploadPct}%` }} />
               </div>
             </div>
           )}
@@ -276,11 +276,11 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
                 const sel = selections.has(url);
                 const canDelete = !shoot.selectionSubmitted && shoot.status !== 'klaar';
                 return (
-                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-sage' : 'border-transparent'}`}>
+                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-amber' : 'border-transparent'}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block" />
                     {sel && (
-                      <div className="absolute top-1.5 left-1.5 bg-sage text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <div className="absolute top-1.5 left-1.5 bg-velaro text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                         ✓ {i + 1}
                       </div>
                     )}

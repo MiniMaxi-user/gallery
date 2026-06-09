@@ -75,7 +75,7 @@ export default function Lightbox({ photos, index, selected, submitted, onClose, 
             className={`px-6 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all ${
               selected
                 ? 'bg-transparent text-emerald-300 border-emerald-300 hover:bg-emerald-300/12'
-                : 'bg-sage text-white border-sage hover:bg-sage-hover hover:border-sage-hover'
+                : 'bg-velaro text-white border-velaro hover:bg-velaro-hover hover:border-velaro-hover'
             }`}
           >
             {selected ? 'Deselecteer' : 'Selecteer'}

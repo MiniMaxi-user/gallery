@@ -12,7 +12,7 @@ export default function Home() {
         </p>
         <p className="text-warm-muted text-xs mt-4">
           Fotograaf?{' '}
-          <Link href="/admin" className="text-sage underline">
+          <Link href="/admin" className="text-velaro underline">
             Ga naar het beheer
           </Link>
         </p>

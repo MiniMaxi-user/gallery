@@ -11,7 +11,7 @@
 
 @layer components {
   .input {
-    @apply w-full border border-warm-border rounded-lg px-3 py-2 text-sm bg-cream-50 text-warm-text outline-none transition-colors focus:border-sage;
+    @apply w-full border border-warm-border rounded-lg px-3 py-2 text-sm bg-white text-warm-text outline-none transition-colors focus:border-velaro-amber focus:ring-1 focus:ring-velaro-amber/30;
   }
 
   .btn {
@@ -19,11 +19,11 @@
   }
 
   .btn-primary {
-    @apply btn bg-sage text-white hover:bg-sage-hover disabled:bg-sage-light;
+    @apply btn bg-velaro text-white hover:bg-velaro-hover disabled:bg-velaro-light disabled:text-white/70;
   }
 
   .btn-secondary {
-    @apply btn bg-cream-100 text-warm-text hover:bg-cream-200;
+    @apply btn bg-cream-100 text-warm-text border border-warm-border hover:bg-cream-200;
   }
 
   .btn-danger {
@@ -47,7 +47,7 @@
   }
 
   .info-box {
-    @apply bg-sage-bg text-sage-dark rounded-lg px-3 py-3 text-sm leading-relaxed;
+    @apply bg-velaro-bg text-velaro-dark rounded-lg px-3 py-3 text-sm leading-relaxed;
   }
 
   .badge {
