@@ -82,7 +82,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
 
   function resizeImage(file: File, maxWidth = 600): Promise<File> {
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       const url = URL.createObjectURL(file);
       img.onload = () => {
         URL.revokeObjectURL(url);
