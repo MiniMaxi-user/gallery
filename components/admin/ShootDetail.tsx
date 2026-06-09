@@ -80,16 +80,20 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     }
   }
 
-  function resizeImage(file: File, maxWidth = 600): Promise<File> {
+  function resizeImage(file: File): Promise<File> {
     return new Promise((resolve) => {
       const img = document.createElement('img');
       const url = URL.createObjectURL(file);
       img.onload = () => {
         URL.revokeObjectURL(url);
-        if (img.width <= maxWidth) { resolve(file); return; }
-        const scale = maxWidth / img.width;
+        const isLandscape = img.width > img.height;
+        // Portrait: max 600px breed; landscape: max 600px hoog
+        const scale = isLandscape
+          ? (img.height > 600 ? 600 / img.height : 1)
+          : (img.width  > 600 ? 600 / img.width  : 1);
+        if (scale === 1) { resolve(file); return; }
         const canvas = document.createElement('canvas');
-        canvas.width = maxWidth;
+        canvas.width  = Math.round(img.width  * scale);
         canvas.height = Math.round(img.height * scale);
         canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
@@ -129,6 +133,22 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     setUploadText(`${files.length} foto${files.length !== 1 ? "'s" : ''} geüpload`);
     setTimeout(() => { setUploading(false); setUploadPct(0); }, 2000);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  async function deletePhoto(url: string) {
+    if (!confirm('Deze foto verwijderen?')) return;
+    try {
+      await apiFetch(`/api/shoots/${shoot.id}/photos`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const updated = { ...shoot, photos: shoot.photos.filter(p => p !== url) };
+      setShoot(updated);
+      onUpdated(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Verwijderen mislukt');
+    }
   }
 
   function copyLink() {
@@ -254,6 +274,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
               {photos.map((url, i) => {
                 const sel = selections.has(url);
+                const canDelete = !shoot.selectionSubmitted && shoot.status !== 'klaar';
                 return (
                   <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-sage' : 'border-transparent'}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -263,8 +284,17 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
                         ✓ {i + 1}
                       </div>
                     )}
+                    {canDelete && (
+                      <button
+                        className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center leading-none shadow"
+                        title="Foto verwijderen"
+                        onClick={() => deletePhoto(url)}
+                      >
+                        ×
+                      </button>
+                    )}
                     <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1 text-[11px] text-white truncate">
-                      {url.split('/').pop()}
+                      {(url.split('/').pop() ?? '').replace(/^\d+-/, '')}
                     </div>
                   </div>
                 );
