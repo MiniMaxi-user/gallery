@@ -14,3 +14,15 @@ export interface Shoot {
 export interface AppData {
   shoots: Shoot[];
 }
+
+export interface PhotographerUser {
+  id: string;
+  name: string;
+  email: string;
+  registeredAt: string;
+  isActive: boolean;
+}
+
+export interface PlatformData {
+  photographers: PhotographerUser[];
+}

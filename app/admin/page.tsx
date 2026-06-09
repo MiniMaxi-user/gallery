@@ -1,7 +1,7 @@
-import AdminApp from '@/components/admin/AdminApp';
+import AdminLogin from '@/components/platform-admin/AdminLogin';
 
-export const metadata = { title: 'Line Photography — Beheer' };
+export const metadata = { title: 'Velaro — Platform Admin' };
 
 export default function AdminPage() {
-  return <AdminApp />;
+  return <AdminLogin />;
 }
