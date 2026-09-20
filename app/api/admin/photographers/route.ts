@@ -8,8 +8,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const data = await getPlatformData();
-  return NextResponse.json({ photographers: data.photographers });
+  try {
+    const data = await getPlatformData();
+    return NextResponse.json({ photographers: data.photographers });
+  } catch (err) {
+    console.error('GET /api/admin/photographers failed:', err);
+    return NextResponse.json({ error: 'Kon fotografen niet ophalen. Probeer het opnieuw.' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -23,23 +28,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Naam, e-mail en wachtwoord zijn verplicht' }, { status: 400 });
   }
 
-  const data = await getPlatformData();
+  try {
+    const data = await getPlatformData();
 
-  if (data.photographers.some(p => p.email.toLowerCase() === email.toLowerCase())) {
-    return NextResponse.json({ error: 'E-mailadres al in gebruik' }, { status: 409 });
+    if (data.photographers.some(p => p.email.toLowerCase() === email.toLowerCase())) {
+      return NextResponse.json({ error: 'E-mailadres al in gebruik' }, { status: 409 });
+    }
+
+    const photographer: PhotographerUser = {
+      id:           crypto.randomUUID(),
+      name:         name.trim(),
+      email:        email.trim().toLowerCase(),
+      password:     password.trim(),
+      registeredAt: new Date().toISOString(),
+      isActive:     true,
+    };
+
+    data.photographers.push(photographer);
+    await savePlatformData(data);
+
+    return NextResponse.json({ photographer }, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/admin/photographers failed:', err);
+    return NextResponse.json({ error: 'Kon fotograaf niet opslaan. Controleer de database-configuratie.' }, { status: 500 });
   }
-
-  const photographer: PhotographerUser = {
-    id:           crypto.randomUUID(),
-    name:         name.trim(),
-    email:        email.trim().toLowerCase(),
-    password:     password.trim(),
-    registeredAt: new Date().toISOString(),
-    isActive:     true,
-  };
-
-  data.photographers.push(photographer);
-  await savePlatformData(data);
-
-  return NextResponse.json({ photographer }, { status: 201 });
 }
