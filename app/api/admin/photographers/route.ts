@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ photographer }, { status: 201 });
   } catch (err) {
     console.error('POST /api/admin/photographers failed:', err);
-    return NextResponse.json({ error: 'Kon fotograaf niet opslaan. Controleer de database-configuratie.' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Kon fotograaf niet opslaan: ${detail}` }, { status: 500 });
   }
 }
