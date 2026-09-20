@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { statusBadge, generatePassword, apiFetch } from './utils';
-import type { Shoot } from './types';
+import type { Shoot, Album } from './types';
 
 interface Props {
   shoot:     Shoot;
@@ -25,6 +25,12 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
   const [uploadPct, setUploadPct]   = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [albums, setAlbums]                 = useState<Album[]>(initialShoot.albums ?? []);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
+  const [newAlbumName, setNewAlbumName]       = useState('');
+  const [editingAlbumId, setEditingAlbumId]   = useState<string | null>(null);
+  const [editingAlbumName, setEditingAlbumName] = useState('');
+
   useEffect(() => {
     setShoot(initialShoot);
     setName(initialShoot.name);
@@ -32,6 +38,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     setClientName(initialShoot.clientName);
     setClientEmail(initialShoot.clientEmail);
     setPassword(initialShoot.password);
+    setAlbums(initialShoot.albums ?? []);
   }, [initialShoot]);
 
   const galleryUrl = typeof window !== 'undefined'
@@ -80,6 +87,61 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     }
   }
 
+  async function saveAlbums(next: Album[]) {
+    setAlbums(next);
+    try {
+      const updated = await apiFetch(`/api/shoots/${shoot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ albums: next }),
+      });
+      setShoot(updated);
+      onUpdated(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Opslaan mislukt');
+    }
+  }
+
+  function createAlbum() {
+    const name = newAlbumName.trim();
+    if (!name) return;
+    const album: Album = { id: crypto.randomUUID(), name, photos: [] };
+    saveAlbums([...albums, album]);
+    setNewAlbumName('');
+  }
+
+  function renameAlbum(id: string) {
+    if (editingAlbumId !== id) return;
+    const name = editingAlbumName.trim();
+    setEditingAlbumId(null);
+    if (!name) return;
+    saveAlbums(albums.map(a => a.id === id ? { ...a, name } : a));
+  }
+
+  function deleteAlbum(id: string) {
+    const album = albums.find(a => a.id === id);
+    if (!album) return;
+    if (!confirm(`Map "${album.name}" verwijderen?\n\nDe foto's blijven bewaard bij "Alle foto's".`)) return;
+    saveAlbums(albums.filter(a => a.id !== id));
+    if (selectedAlbumId === id) setSelectedAlbumId(null);
+  }
+
+  function setCover(albumId: string, url: string) {
+    saveAlbums(albums.map(a => a.id === albumId ? { ...a, coverPhoto: url } : a));
+  }
+
+  function assignPhoto(url: string, albumId: string | null) {
+    saveAlbums(albums.map(a => {
+      const photos = a.photos.filter(p => p !== url);
+      if (a.id === albumId) photos.push(url);
+      return {
+        ...a,
+        photos,
+        coverPhoto: a.coverPhoto === url && a.id !== albumId ? undefined : a.coverPhoto,
+      };
+    }));
+  }
+
   function resizeImage(file: File): Promise<File> {
     return new Promise((resolve) => {
       const img = document.createElement('img');
@@ -110,6 +172,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     if (!files.length) return;
     setUploading(true);
     let current = shoot;
+    let currentAlbums = albums;
 
     for (let i = 0; i < files.length; i++) {
       setUploadText(`Uploaden ${i + 1} van ${files.length}: ${files[i].name}`);
@@ -118,9 +181,17 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
       const fd = new FormData();
       fd.append('file', resized);
       fd.append('shootId', String(shoot.id));
+      if (selectedAlbumId) fd.append('albumId', selectedAlbumId);
       try {
         const result = await apiFetch('/api/upload', { method: 'POST', body: fd });
         current = { ...current, photos: [...current.photos, result.url] };
+        if (selectedAlbumId) {
+          currentAlbums = currentAlbums.map(a =>
+            a.id === selectedAlbumId ? { ...a, photos: [...a.photos, result.url] } : a
+          );
+          current = { ...current, albums: currentAlbums };
+          setAlbums(currentAlbums);
+        }
         setShoot(current);
         onUpdated(current);
       } catch {
@@ -142,7 +213,13 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      const updated = { ...shoot, photos: shoot.photos.filter(p => p !== url) };
+      const nextAlbums = albums.map(a => ({
+        ...a,
+        photos: a.photos.filter(p => p !== url),
+        coverPhoto: a.coverPhoto === url ? undefined : a.coverPhoto,
+      }));
+      const updated = { ...shoot, photos: shoot.photos.filter(p => p !== url), albums: nextAlbums };
+      setAlbums(nextAlbums);
       setShoot(updated);
       onUpdated(updated);
     } catch (err) {
@@ -165,6 +242,9 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
   const badge     = statusBadge(shoot);
   const photos    = shoot.photos ?? [];
   const selections = new Set(shoot.selections ?? []);
+  const visiblePhotos = selectedAlbumId
+    ? (albums.find(a => a.id === selectedAlbumId)?.photos ?? [])
+    : photos;
 
   return (
     <div>
@@ -247,7 +327,10 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
             <button className="btn-primary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
               Bladeren door bestanden
             </button>
-            <span className="text-xs text-velaro-muted">JPG, PNG · meerdere bestanden tegelijk mogelijk</span>
+            <span className="text-xs text-velaro-muted">
+              JPG, PNG · meerdere bestanden tegelijk mogelijk
+              {selectedAlbumId && ` · wordt toegevoegd aan map "${albums.find(a => a.id === selectedAlbumId)?.name}"`}
+            </span>
           </div>
           {uploading && (
             <div className="mt-4">
@@ -262,47 +345,156 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
           )}
         </div>
 
-        {/* Photos */}
-        <div className="card">
-          <div className="mb-4">
-            <h3 className="font-serif text-xl font-light">Foto&apos;s ({photos.length})</h3>
-            <p className="text-xs text-velaro-muted mt-1">
-              {selections.size > 0 ? `${selections.size} foto's geselecteerd door klant` : 'Nog geen selectie ontvangen.'}
-            </p>
-          </div>
-          {photos.length === 0 ? (
-            <p className="text-velaro-muted text-sm">Nog geen foto&apos;s geüpload.</p>
-          ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
-              {photos.map((url, i) => {
-                const sel = selections.has(url);
-                const canDelete = !shoot.selectionSubmitted && shoot.status !== 'klaar';
+        {/* Mappen + Photos */}
+        <div className="flex flex-col md:flex-row gap-4">
+
+          {/* Mappen sidebar */}
+          <div className="card md:w-64 shrink-0">
+            <h3 className="font-serif text-lg font-light mb-3">Mappen</h3>
+            <div className="flex flex-col gap-1">
+              <button
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-left transition-colors ${
+                  selectedAlbumId === null ? 'bg-velaro-gold/15 text-velaro-gold' : 'hover:bg-white/5 text-white'
+                }`}
+                onClick={() => setSelectedAlbumId(null)}
+              >
+                <span className="flex-1">Alle foto&apos;s</span>
+                <span className="text-xs text-velaro-muted">{photos.length}</span>
+              </button>
+              {albums.map(a => {
+                const cover = a.coverPhoto ?? a.photos[0];
                 return (
-                  <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-gold' : 'border-white/[0.08]'}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block" />
-                    {sel && (
-                      <div className="absolute top-1.5 left-1.5 bg-velaro-gold text-velaro-bg text-xs font-semibold px-2 py-0.5 rounded-full">
-                        ✓ {i + 1}
-                      </div>
+                  <div
+                    key={a.id}
+                    className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
+                      selectedAlbumId === a.id ? 'bg-velaro-gold/15 text-velaro-gold' : 'hover:bg-white/5 text-white'
+                    }`}
+                  >
+                    {cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cover} alt="" className="w-7 h-7 rounded object-cover shrink-0" />
+                    ) : (
+                      <div className="w-7 h-7 rounded bg-white/10 shrink-0" />
                     )}
-                    {canDelete && (
+                    {editingAlbumId === a.id ? (
+                      <input
+                        autoFocus
+                        className="input flex-1 py-1 text-xs"
+                        value={editingAlbumName}
+                        onChange={e => setEditingAlbumName(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') renameAlbum(a.id);
+                          if (e.key === 'Escape') setEditingAlbumId(null);
+                        }}
+                        onBlur={() => renameAlbum(a.id)}
+                      />
+                    ) : (
                       <button
-                        className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center leading-none shadow"
-                        title="Foto verwijderen"
-                        onClick={() => deletePhoto(url)}
+                        className="flex-1 text-left truncate"
+                        onClick={() => setSelectedAlbumId(a.id)}
+                        onDoubleClick={() => { setEditingAlbumId(a.id); setEditingAlbumName(a.name); }}
+                        title="Dubbelklik om te hernoemen"
                       >
-                        ×
+                        {a.name}
                       </button>
                     )}
-                    <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1 text-[11px] text-white truncate">
-                      {(url.split('/').pop() ?? '').replace(/^\d+-/, '')}
-                    </div>
+                    <span className="text-xs text-velaro-muted">{a.photos.length}</span>
+                    <button
+                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs transition-opacity leading-none"
+                      title="Map verwijderen"
+                      onClick={() => deleteAlbum(a.id)}
+                    >
+                      ×
+                    </button>
                   </div>
                 );
               })}
             </div>
-          )}
+            <div className="flex gap-2 mt-3">
+              <input
+                className="input flex-1 text-xs py-1.5"
+                placeholder="Nieuwe map…"
+                value={newAlbumName}
+                onChange={e => setNewAlbumName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') createAlbum(); }}
+              />
+              <button className="btn-secondary text-xs px-2.5 whitespace-nowrap" onClick={createAlbum}>+ Map</button>
+            </div>
+          </div>
+
+          {/* Photos */}
+          <div className="card flex-1 min-w-0">
+            <div className="mb-4">
+              <h3 className="font-serif text-xl font-light">
+                {selectedAlbumId ? albums.find(a => a.id === selectedAlbumId)?.name : "Foto's"} ({visiblePhotos.length})
+              </h3>
+              <p className="text-xs text-velaro-muted mt-1">
+                {selections.size > 0 ? `${selections.size} foto's geselecteerd door klant (hele shoot)` : 'Nog geen selectie ontvangen.'}
+              </p>
+            </div>
+            {visiblePhotos.length === 0 ? (
+              <p className="text-velaro-muted text-sm">
+                {selectedAlbumId ? "Nog geen foto's in deze map." : "Nog geen foto's geüpload."}
+              </p>
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+                {visiblePhotos.map((url, i) => {
+                  const sel = selections.has(url);
+                  const canDelete = !shoot.selectionSubmitted && shoot.status !== 'klaar';
+                  const activeAlbum = albums.find(a => a.id === selectedAlbumId);
+                  const isCover = activeAlbum
+                    ? (activeAlbum.coverPhoto ?? activeAlbum.photos[0]) === url
+                    : false;
+                  return (
+                    <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-gold' : 'border-white/[0.08]'}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square object-cover block" />
+                      {sel && (
+                        <div className="absolute top-1.5 left-1.5 bg-velaro-gold text-velaro-bg text-xs font-semibold px-2 py-0.5 rounded-full">
+                          ✓ {i + 1}
+                        </div>
+                      )}
+                      {activeAlbum && (
+                        <button
+                          className={`absolute top-1.5 ${sel ? 'left-14' : 'left-1.5'} w-6 h-6 rounded-full flex items-center justify-center text-xs shadow ${
+                            isCover ? 'bg-velaro-gold text-velaro-bg' : 'bg-black/60 text-white hover:bg-black/80'
+                          }`}
+                          title={isCover ? 'Omslagfoto van deze map' : 'Als omslagfoto instellen'}
+                          onClick={() => setCover(activeAlbum.id, url)}
+                        >
+                          ★
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center leading-none shadow"
+                          title="Foto verwijderen"
+                          onClick={() => deletePhoto(url)}
+                        >
+                          ×
+                        </button>
+                      )}
+                      <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1 flex items-center gap-1">
+                        <span className="flex-1 text-[11px] text-white truncate">
+                          {(url.split('/').pop() ?? '').replace(/^\d+-/, '')}
+                        </span>
+                        <select
+                          className="text-[10px] bg-white/10 text-white rounded px-1 py-0.5 border-0 outline-none max-w-[68px]"
+                          value={albums.find(a => a.photos.includes(url))?.id ?? ''}
+                          onChange={e => assignPhoto(url, e.target.value || null)}
+                          title="Map toewijzen"
+                        >
+                          <option value="">Geen map</option>
+                          {albums.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
 
       </main>

@@ -19,7 +19,15 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if (idx < 0) return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
 
   await del(url).catch(() => {});
-  data.shoots[idx].photos = data.shoots[idx].photos.filter(p => p !== url);
+  const shoot = data.shoots[idx];
+  shoot.photos = shoot.photos.filter(p => p !== url);
+  if (shoot.albums) {
+    shoot.albums = shoot.albums.map(a => ({
+      ...a,
+      photos: a.photos.filter(p => p !== url),
+      coverPhoto: a.coverPhoto === url ? undefined : a.coverPhoto,
+    }));
+  }
   await saveData(data);
   return NextResponse.json({ success: true });
 }

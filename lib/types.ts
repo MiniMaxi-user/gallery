@@ -1,3 +1,10 @@
+export interface Album {
+  id: string;
+  name: string;
+  coverPhoto?: string;
+  photos: string[];
+}
+
 export interface Shoot {
   id: number;
   name: string;
@@ -6,6 +13,7 @@ export interface Shoot {
   clientEmail: string;
   password: string;
   photos: string[];
+  albums?: Album[];
   selections: string[];
   selectionSubmitted?: boolean;
   status?: 'klaar';
