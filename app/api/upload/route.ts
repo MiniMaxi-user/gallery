@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { getData, saveData } from '@/lib/data';
-import { isAdminAuthenticatedFromRequest } from '@/lib/auth';
+import { getShoot, updateShoot } from '@/lib/data';
+import { getAuthenticatedPhotographerIdFromRequest } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  if (!isAdminAuthenticatedFromRequest(req)) {
+  const photographerId = getAuthenticatedPhotographerIdFromRequest(req);
+  if (!photographerId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -18,26 +19,32 @@ export async function POST(req: NextRequest) {
   }
 
   const id = Number(shootId);
-  const data = await getData();
-  const idx  = data.shoots.findIndex(s => s.id === id);
-  if (idx < 0) return NextResponse.json({ error: 'Shoot niet gevonden' }, { status: 404 });
 
-  const blob = await put(`shoots/${id}/${Date.now()}-${file.name}`, file, {
-    access: 'public',
-  });
-
-  if (!data.shoots[idx].photos.includes(blob.url)) {
-    data.shoots[idx].photos.push(blob.url);
-  }
-  if (albumId) {
-    const albums = data.shoots[idx].albums ?? [];
-    const album  = albums.find(a => a.id === albumId);
-    if (album && !album.photos.includes(blob.url)) {
-      album.photos.push(blob.url);
+  try {
+    const shoot = await getShoot(id);
+    if (!shoot || shoot.photographerId !== photographerId) {
+      return NextResponse.json({ error: 'Shoot niet gevonden' }, { status: 404 });
     }
-    data.shoots[idx].albums = albums;
-  }
-  await saveData(data);
 
-  return NextResponse.json({ url: blob.url });
+    const blob = await put(`shoots/${id}/${Date.now()}-${file.name}`, file, {
+      access: 'public',
+    });
+
+    const photos = shoot.photos.includes(blob.url) ? shoot.photos : [...shoot.photos, blob.url];
+    let albums = shoot.albums ?? [];
+    if (albumId) {
+      albums = albums.map(a =>
+        a.id === albumId && !a.photos.includes(blob.url)
+          ? { ...a, photos: [...a.photos, blob.url] }
+          : a
+      );
+    }
+
+    await updateShoot(id, { photos, albums });
+
+    return NextResponse.json({ url: blob.url });
+  } catch (err) {
+    console.error('POST /api/upload failed:', err);
+    return NextResponse.json({ error: 'Upload mislukt. Probeer het opnieuw.' }, { status: 500 });
+  }
 }

@@ -7,6 +7,7 @@ export interface Album {
 
 export interface Shoot {
   id: number;
+  photographerId: string;
   name: string;
   date: string;
   clientName: string;
@@ -19,10 +20,6 @@ export interface Shoot {
   status?: 'klaar';
 }
 
-export interface AppData {
-  shoots: Shoot[];
-}
-
 export interface PhotographerUser {
   id: string;
   name: string;
@@ -30,8 +27,4 @@ export interface PhotographerUser {
   password: string;
   registeredAt: string;
   isActive: boolean;
-}
-
-export interface PlatformData {
-  photographers: PhotographerUser[];
 }

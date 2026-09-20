@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getData, saveData, nextId } from '@/lib/data';
-import { isAdminAuthenticatedFromRequest } from '@/lib/auth';
-import type { Shoot } from '@/lib/types';
+import { getShootsForPhotographer, createShoot } from '@/lib/data';
+import { getAuthenticatedPhotographerIdFromRequest } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  if (!isAdminAuthenticatedFromRequest(req)) {
+  const photographerId = getAuthenticatedPhotographerIdFromRequest(req);
+  if (!photographerId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const data = await getData();
-  return NextResponse.json(data);
+
+  try {
+    const shoots = await getShootsForPhotographer(photographerId);
+    return NextResponse.json({ shoots });
+  } catch (err) {
+    console.error('GET /api/shoots failed:', err);
+    return NextResponse.json({ error: 'Kon shoots niet ophalen. Probeer het opnieuw.' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAdminAuthenticatedFromRequest(req)) {
+  const photographerId = getAuthenticatedPhotographerIdFromRequest(req);
+  if (!photographerId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -23,22 +30,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Verplichte velden ontbreken' }, { status: 400 });
   }
 
-  const data = await getData();
-  const id = await nextId(data.shoots);
-
-  const shoot: Shoot = {
-    id,
-    name,
-    date: date ?? '',
-    clientName,
-    clientEmail,
-    password,
-    photos: [],
-    selections: [],
-  };
-
-  data.shoots.unshift(shoot);
-  await saveData(data);
-
-  return NextResponse.json(shoot, { status: 201 });
+  try {
+    const shoot = await createShoot(photographerId, { name, date: date ?? '', clientName, clientEmail, password });
+    return NextResponse.json(shoot, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/shoots failed:', err);
+    return NextResponse.json({ error: 'Kon shoot niet aanmaken. Probeer het opnieuw.' }, { status: 500 });
+  }
 }

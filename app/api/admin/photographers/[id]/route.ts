@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { del } from '@vercel/blob';
 import { isPlatformAdminAuthenticatedFromRequest } from '@/lib/auth';
-import { getPlatformData, savePlatformData, getData, saveData } from '@/lib/data';
+import { getPhotographerById, updatePhotographer, deletePhotographer, getShootsForPhotographer } from '@/lib/data';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -14,19 +14,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body   = await req.json();
 
   try {
-    const data = await getPlatformData();
-    const idx  = data.photographers.findIndex(p => p.id === id);
-
-    if (idx === -1) {
+    const existing = await getPhotographerById(id);
+    if (!existing) {
       return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
     }
 
-    if (typeof body.isActive === 'boolean') {
-      data.photographers[idx].isActive = body.isActive;
-    }
+    const photographer = await updatePhotographer(id, {
+      isActive: typeof body.isActive === 'boolean' ? body.isActive : undefined,
+    });
 
-    await savePlatformData(data);
-    return NextResponse.json({ photographer: data.photographers[idx] });
+    return NextResponse.json({ photographer });
   } catch (err) {
     console.error('PATCH /api/admin/photographers/[id] failed:', err);
     return NextResponse.json({ error: 'Opslaan mislukt. Probeer het opnieuw.' }, { status: 500 });
@@ -41,20 +38,17 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const { id } = await params;
 
   try {
-    const platformData = await getPlatformData();
-    if (!platformData.photographers.find(p => p.id === id)) {
+    const photographer = await getPhotographerById(id);
+    if (!photographer) {
       return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
     }
 
-    // Delete all galleries and their photos from Blob storage
-    const galleryData = await getData();
-    await Promise.allSettled(
-      galleryData.shoots.flatMap(s => s.photos.map(url => del(url)))
-    );
-    await saveData({ shoots: [] });
+    // Delete only this photographer's shoots' photos from Blob storage —
+    // the shoot rows themselves cascade-delete in the database.
+    const shoots = await getShootsForPhotographer(id);
+    await Promise.allSettled(shoots.flatMap(s => s.photos.map(url => del(url))));
 
-    platformData.photographers = platformData.photographers.filter(p => p.id !== id);
-    await savePlatformData(platformData);
+    await deletePhotographer(id);
 
     return NextResponse.json({ success: true });
   } catch (err) {

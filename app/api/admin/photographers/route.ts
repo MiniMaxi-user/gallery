@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isPlatformAdminAuthenticatedFromRequest } from '@/lib/auth';
-import { getPlatformData, savePlatformData } from '@/lib/data';
-import type { PhotographerUser } from '@/lib/types';
+import { getPhotographers, getPhotographerByEmail, createPhotographer } from '@/lib/data';
 
 export async function GET(req: NextRequest) {
   if (!isPlatformAdminAuthenticatedFromRequest(req)) {
@@ -9,8 +8,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const data = await getPlatformData();
-    return NextResponse.json({ photographers: data.photographers });
+    const photographers = await getPhotographers();
+    return NextResponse.json({ photographers });
   } catch (err) {
     console.error('GET /api/admin/photographers failed:', err);
     return NextResponse.json({ error: 'Kon fotografen niet ophalen. Probeer het opnieuw.' }, { status: 500 });
@@ -29,23 +28,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const data = await getPlatformData();
-
-    if (data.photographers.some(p => p.email.toLowerCase() === email.toLowerCase())) {
+    const existing = await getPhotographerByEmail(email.trim());
+    if (existing) {
       return NextResponse.json({ error: 'E-mailadres al in gebruik' }, { status: 409 });
     }
 
-    const photographer: PhotographerUser = {
-      id:           crypto.randomUUID(),
-      name:         name.trim(),
-      email:        email.trim().toLowerCase(),
-      password:     password.trim(),
-      registeredAt: new Date().toISOString(),
-      isActive:     true,
-    };
-
-    data.photographers.push(photographer);
-    await savePlatformData(data);
+    const photographer = await createPhotographer({
+      name:     name.trim(),
+      email:    email.trim().toLowerCase(),
+      password: password.trim(),
+    });
 
     return NextResponse.json({ photographer }, { status: 201 });
   } catch (err) {

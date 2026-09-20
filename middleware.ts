@@ -3,8 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 const PHOTOGRAPHER_COOKIE   = 'admin_session';
 const PLATFORM_ADMIN_COOKIE = 'platform_admin_session';
 
-function photographerValue() {
-  return process.env.ADMIN_SESSION_SECRET ?? 'dev-secret';
+// Structural check only (id.hmac) — real HMAC verification happens in the
+// API routes (Node.js runtime), which is the actual security boundary.
+// Edge middleware only uses this for redirect UX.
+function looksLikePhotographerSession(value: string | undefined) {
+  if (!value) return false;
+  const [id, sig] = value.split('.');
+  return Boolean(id) && Boolean(sig);
 }
 
 function platformAdminValue() {
@@ -14,7 +19,7 @@ function platformAdminValue() {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isPhotographer  = request.cookies.get(PHOTOGRAPHER_COOKIE)?.value   === photographerValue();
+  const isPhotographer  = looksLikePhotographerSession(request.cookies.get(PHOTOGRAPHER_COOKIE)?.value);
   const isPlatformAdmin = request.cookies.get(PLATFORM_ADMIN_COOKIE)?.value === platformAdminValue();
 
   // Admin login page — redirect away if already authenticated
