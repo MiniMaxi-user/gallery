@@ -1,4 +1,4 @@
-import type { Shoot } from '@/lib/types';
+import type { Shoot, Album } from '@/lib/types';
 
 export type View = 'auth' | 'dashboard' | 'detail' | 'new' | 'settings';
 
@@ -8,4 +8,4 @@ export interface AdminState {
   currentShoot: Shoot | null;
 }
 
-export type { Shoot };
+export type { Shoot, Album };

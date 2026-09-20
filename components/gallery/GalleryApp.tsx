@@ -31,6 +31,7 @@ export default function GalleryApp({ shootId }: Props) {
   const [loginLoading, setLoginLoading] = useState(false);
 
   const [lbIndex, setLbIndex]   = useState(-1);
+  const [albumId, setAlbumId]   = useState<string | null>(null);
 
   const SESSION_KEY = `gal_${shootId}`;
 
@@ -178,6 +179,9 @@ export default function GalleryApp({ shootId }: Props) {
   // ── GALLERY ──
   if (!shoot) return null;
   const photos   = shoot.photos ?? [];
+  const albums   = shoot.albums ?? [];
+  const activeAlbum = albums.find(a => a.id === albumId) ?? null;
+  const visiblePhotos = activeAlbum ? activeAlbum.photos : photos;
   const selCount = selected.size;
 
   return (
@@ -218,40 +222,79 @@ export default function GalleryApp({ shootId }: Props) {
         {photos.length === 0 ? (
           <p className="text-velaro-muted text-center py-16">Nog geen foto&apos;s beschikbaar. Kom later terug.</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
-            {photos.map((url, i) => {
-              const sel = selected.has(url);
-              return (
-                <div
-                  key={url}
-                  className={`photo-item relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all select-none ${
-                    sel
-                      ? 'border-velaro-gold shadow-[0_0_0_1px_rgba(216,189,113,0.4)]'
-                      : 'border-white/[0.08] hover:border-white/25'
+          <div className="flex flex-col md:flex-row gap-6">
+            {albums.length > 0 && (
+              <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible md:w-56 shrink-0 pb-1 md:pb-0">
+                <button
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap shrink-0 transition-colors ${
+                    albumId === null ? 'bg-velaro-gold/15 text-velaro-gold' : 'bg-white/5 hover:bg-white/10 text-white'
                   }`}
-                  onClick={() => toggleSelect(url)}
+                  onClick={() => setAlbumId(null)}
                 >
-                  <WatermarkedImage src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square block pointer-events-none" coverSquare />
-                  {sel && (
-                    <div className="absolute inset-0 bg-velaro-gold/15 flex items-center justify-center pointer-events-none">
-                      <div className="bg-velaro-gold rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B0B0D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Alle foto&apos;s <span className="text-xs opacity-60">({photos.length})</span>
+                </button>
+                {albums.map(a => {
+                  const cover = a.coverPhoto ?? a.photos[0];
+                  return (
+                    <button
+                      key={a.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap shrink-0 transition-colors ${
+                        albumId === a.id ? 'bg-velaro-gold/15 text-velaro-gold' : 'bg-white/5 hover:bg-white/10 text-white'
+                      }`}
+                      onClick={() => setAlbumId(a.id)}
+                    >
+                      {cover && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={cover} alt="" className="w-5 h-5 rounded object-cover" />
+                      )}
+                      {a.name} <span className="text-xs opacity-60">({a.photos.length})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              {visiblePhotos.length === 0 ? (
+                <p className="text-velaro-muted text-center py-16">Geen foto&apos;s in deze map.</p>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+                  {visiblePhotos.map((url, i) => {
+                    const sel = selected.has(url);
+                    return (
+                      <div
+                        key={url}
+                        className={`photo-item relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all select-none ${
+                          sel
+                            ? 'border-velaro-gold shadow-[0_0_0_1px_rgba(216,189,113,0.4)]'
+                            : 'border-white/[0.08] hover:border-white/25'
+                        }`}
+                        onClick={() => toggleSelect(url)}
+                      >
+                        <WatermarkedImage src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square block pointer-events-none" coverSquare />
+                        {sel && (
+                          <div className="absolute inset-0 bg-velaro-gold/15 flex items-center justify-center pointer-events-none">
+                            <div className="bg-velaro-gold rounded-full w-8 h-8 flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B0B0D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                          </div>
+                        )}
+                        <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold pointer-events-none ${sel ? 'bg-velaro-gold/80 text-velaro-bg' : 'bg-black/55 text-white'}`}>
+                          {sel ? '✓ Geselecteerd' : (submitted ? '' : 'Selecteer')}
+                        </div>
+                        <button
+                          className="photo-zoom-btn z-10"
+                          title="Vergroten"
+                          onClick={e => { e.stopPropagation(); setLbIndex(i); }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </button>
                       </div>
-                    </div>
-                  )}
-                  <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold pointer-events-none ${sel ? 'bg-velaro-gold/80 text-velaro-bg' : 'bg-black/55 text-white'}`}>
-                    {sel ? '✓ Geselecteerd' : (submitted ? '' : 'Selecteer')}
-                  </div>
-                  <button
-                    className="photo-zoom-btn z-10"
-                    title="Vergroten"
-                    onClick={e => { e.stopPropagation(); setLbIndex(i); }}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  </button>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
         )}
 
@@ -271,13 +314,13 @@ export default function GalleryApp({ shootId }: Props) {
 
       {lbIndex >= 0 && (
         <Lightbox
-          photos={photos}
+          photos={visiblePhotos}
           index={lbIndex}
-          selected={selected.has(photos[lbIndex])}
+          selected={selected.has(visiblePhotos[lbIndex])}
           submitted={submitted}
           onClose={() => setLbIndex(-1)}
-          onNav={dir => setLbIndex(i => (i + dir + photos.length) % photos.length)}
-          onToggle={() => toggleSelect(photos[lbIndex])}
+          onNav={dir => setLbIndex(i => (i + dir + visiblePhotos.length) % visiblePhotos.length)}
+          onToggle={() => toggleSelect(visiblePhotos[lbIndex])}
         />
       )}
     </div>

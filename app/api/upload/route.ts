@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file    = formData.get('file') as File | null;
   const shootId = formData.get('shootId') as string | null;
+  const albumId = formData.get('albumId') as string | null;
 
   if (!file || !shootId) {
     return NextResponse.json({ error: 'Bestand of shootId ontbreekt' }, { status: 400 });
@@ -27,6 +28,14 @@ export async function POST(req: NextRequest) {
 
   if (!data.shoots[idx].photos.includes(blob.url)) {
     data.shoots[idx].photos.push(blob.url);
+  }
+  if (albumId) {
+    const albums = data.shoots[idx].albums ?? [];
+    const album  = albums.find(a => a.id === albumId);
+    if (album && !album.photos.includes(blob.url)) {
+      album.photos.push(blob.url);
+    }
+    data.shoots[idx].albums = albums;
   }
   await saveData(data);
 
