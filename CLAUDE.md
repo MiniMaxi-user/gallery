@@ -7,7 +7,7 @@ Een webapplicatie voor fotografen om klantgalerijen te beheren en te delen. Klan
 - **Next.js 15** (App Router) + **TypeScript**
 - **Tailwind CSS** voor styling
 - **Vercel Blob** voor foto-opslag (vervangt `/uploads/`)
-- **Vercel KV** (Redis) voor data-opslag (vervangt `data.json`)
+- **Supabase** (Postgres, via Vercel Marketplace) voor data-opslag — tabellen `photographers` en `shoots` (elke shoot heeft een `photographer_id`)
 - **Deployment:** Vercel (automatisch via GitHub)
 
 ## Bestandsstructuur
@@ -30,23 +30,25 @@ Een webapplicatie voor fotografen om klantgalerijen te beheren en te delen. Klan
 │   └── gallery/              — GalleryApp, Lightbox
 └── lib/
     ├── types.ts              — Shared TypeScript interfaces
-    ├── data.ts               — Vercel KV data-laag
-    └── auth.ts               — Session helpers
+    ├── data.ts               — Supabase data-laag
+    └── auth.ts               — Session helpers (fotograaf-sessie is HMAC-ondertekend met photographerId, platform-adminsessie is een vast geheim)
 ```
 
 ## Environment variables
 Zie `.env.local.example`. Stel in via Vercel dashboard:
-- `ADMIN_PASSWORD` — inlogwachtwoord fotograaf
-- `ADMIN_SESSION_SECRET` — willekeurige string voor sessie-cookie
-- `KV_*` — automatisch na Vercel KV koppeling
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — inloggegevens **platform admin** (fotografenbeheer), niet van individuele fotografen
+- `ADMIN_SESSION_SECRET` — willekeurige string, gebruikt om fotograaf-sessies te ondertekenen (HMAC) en de platform-adminsessie te valideren
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — automatisch na Supabase-koppeling via Vercel Marketplace (service-role key wordt alleen server-side gebruikt, nooit naar de client gestuurd)
 - `BLOB_READ_WRITE_TOKEN` — automatisch na Vercel Blob koppeling
 
-## Data migratie
-Bestaande shoots uit `data.json` kunnen worden geïmporteerd via de Vercel KV CLI:
-```bash
-vercel kv set gallery_data "$(cat data.json)"
-```
-Foto's in `/uploads/` moeten handmatig opnieuw worden geüpload via het admin paneel.
+Individuele fotografen loggen in met hun eigen e-mail/wachtwoord, opgeslagen in de `photographers`-tabel (aangemaakt door de platform admin).
+
+## Database
+Schema (zie ook Supabase SQL Editor van het project):
+- `photographers` — id (uuid), name, email (uniek), password, registered_at, is_active
+- `shoots` — id, photographer_id (FK, on delete cascade), name, date, client_name, client_email, password, photos (jsonb), albums (jsonb), selections (jsonb), selection_submitted, status
+
+Een fotograaf verwijderen verwijdert automatisch (cascade) al zijn/haar shoots uit de database; de bijbehorende foto's in Vercel Blob worden expliciet in de API-route opgeruimd.
 
 ## Lokaal ontwikkelen
 ```bash
