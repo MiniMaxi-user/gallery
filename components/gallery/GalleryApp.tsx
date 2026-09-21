@@ -32,6 +32,7 @@ export default function GalleryApp({ shootId }: Props) {
 
   const [lbIndex, setLbIndex]   = useState(-1);
   const [albumId, setAlbumId]   = useState<string | null>(null);
+  const [view, setView]         = useState<'folders' | 'photos'>('folders');
 
   const SESSION_KEY = `gal_${shootId}`;
 
@@ -180,9 +181,16 @@ export default function GalleryApp({ shootId }: Props) {
   if (!shoot) return null;
   const photos   = shoot.photos ?? [];
   const albums   = shoot.albums ?? [];
+  const hasAlbums = albums.length > 0;
   const activeAlbum = albums.find(a => a.id === albumId) ?? null;
   const visiblePhotos = activeAlbum ? activeAlbum.photos : photos;
   const selCount = selected.size;
+  const showFolders = hasAlbums && view === 'folders';
+
+  function openAlbum(id: string | null) {
+    setAlbumId(id);
+    setView('photos');
+  }
 
   return (
     <div>
@@ -206,7 +214,11 @@ export default function GalleryApp({ shootId }: Props) {
             <p className="text-xs text-velaro-muted mt-1">
               {photos.length} foto{photos.length !== 1 ? "'s" : ''}{!submitted ? ` · ${selCount} geselecteerd` : ''}
             </p>
-            {!submitted && <p className="text-xs text-velaro-muted mt-0.5">Klik op een foto om te selecteren. Gebruik het vergrootglas om te vergroten.</p>}
+            {!submitted && (
+              <p className="text-xs text-velaro-muted mt-0.5">
+                {showFolders ? 'Kies een map om de foto\'s te bekijken.' : 'Klik op een foto om te selecteren. Gebruik het vergrootglas om te vergroten.'}
+              </p>
+            )}
           </div>
           <div>
             {submitted ? (
@@ -221,80 +233,110 @@ export default function GalleryApp({ shootId }: Props) {
 
         {photos.length === 0 ? (
           <p className="text-velaro-muted text-center py-16">Nog geen foto&apos;s beschikbaar. Kom later terug.</p>
-        ) : (
-          <div className="flex flex-col md:flex-row gap-6">
-            {albums.length > 0 && (
-              <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible md:w-56 shrink-0 pb-1 md:pb-0">
+        ) : showFolders ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {(() => {
+              const cover = shoot.coverPhoto ?? photos[0];
+              const selInAll = photos.filter(p => selected.has(p)).length;
+              return (
                 <button
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap shrink-0 transition-colors ${
-                    albumId === null ? 'bg-velaro-gold/15 text-velaro-gold' : 'bg-white/5 hover:bg-white/10 text-white'
-                  }`}
-                  onClick={() => setAlbumId(null)}
+                  className="group relative rounded-xl overflow-hidden border-2 border-white/[0.08] hover:border-velaro-gold/60 transition-all text-left"
+                  onClick={() => openAlbum(null)}
                 >
-                  Alle foto&apos;s <span className="text-xs opacity-60">({photos.length})</span>
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt="" className="w-full aspect-square object-cover block" />
+                  ) : (
+                    <div className="w-full aspect-square bg-white/5" />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-3 py-3">
+                    <p className="text-white font-medium text-sm truncate">Alle foto&apos;s</p>
+                    <p className="text-[11px] text-white/70">
+                      {photos.length} foto{photos.length !== 1 ? "'s" : ''}{selInAll > 0 ? ` · ${selInAll} geselecteerd` : ''}
+                    </p>
+                  </div>
                 </button>
-                {albums.map(a => {
-                  const cover = a.coverPhoto ?? a.photos[0];
+              );
+            })()}
+            {albums.map(a => {
+              const cover = a.coverPhoto ?? a.photos[0];
+              const selInAlbum = a.photos.filter(p => selected.has(p)).length;
+              return (
+                <button
+                  key={a.id}
+                  className="group relative rounded-xl overflow-hidden border-2 border-white/[0.08] hover:border-velaro-gold/60 transition-all text-left"
+                  onClick={() => openAlbum(a.id)}
+                >
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt="" className="w-full aspect-square object-cover block" />
+                  ) : (
+                    <div className="w-full aspect-square bg-white/5" />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-3 py-3">
+                    <p className="text-white font-medium text-sm truncate">{a.name}</p>
+                    <p className="text-[11px] text-white/70">
+                      {a.photos.length} foto{a.photos.length !== 1 ? "'s" : ''}{selInAlbum > 0 ? ` · ${selInAlbum} geselecteerd` : ''}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div>
+            {hasAlbums && (
+              <button
+                className="btn-ghost text-sm mb-4 -ml-1"
+                onClick={() => setView('folders')}
+              >
+                ← Mappen
+              </button>
+            )}
+            {hasAlbums && (
+              <p className="text-sm text-velaro-muted mb-4 -mt-2">
+                {activeAlbum ? activeAlbum.name : "Alle foto's"}
+              </p>
+            )}
+            {visiblePhotos.length === 0 ? (
+              <p className="text-velaro-muted text-center py-16">Geen foto&apos;s in deze map.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+                {visiblePhotos.map((url, i) => {
+                  const sel = selected.has(url);
                   return (
-                    <button
-                      key={a.id}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap shrink-0 transition-colors ${
-                        albumId === a.id ? 'bg-velaro-gold/15 text-velaro-gold' : 'bg-white/5 hover:bg-white/10 text-white'
+                    <div
+                      key={url}
+                      className={`photo-item relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all select-none ${
+                        sel
+                          ? 'border-velaro-gold shadow-[0_0_0_1px_rgba(216,189,113,0.4)]'
+                          : 'border-white/[0.08] hover:border-white/25'
                       }`}
-                      onClick={() => setAlbumId(a.id)}
+                      onClick={() => toggleSelect(url)}
                     >
-                      {cover && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={cover} alt="" className="w-5 h-5 rounded object-cover" />
+                      <WatermarkedImage src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square block pointer-events-none" coverSquare />
+                      {sel && (
+                        <div className="absolute inset-0 bg-velaro-gold/15 flex items-center justify-center pointer-events-none">
+                          <div className="bg-velaro-gold rounded-full w-8 h-8 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B0B0D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                        </div>
                       )}
-                      {a.name} <span className="text-xs opacity-60">({a.photos.length})</span>
-                    </button>
+                      <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold pointer-events-none ${sel ? 'bg-velaro-gold/80 text-velaro-bg' : 'bg-black/55 text-white'}`}>
+                        {sel ? '✓ Geselecteerd' : (submitted ? '' : 'Selecteer')}
+                      </div>
+                      <button
+                        className="photo-zoom-btn z-10"
+                        title="Vergroten"
+                        onClick={e => { e.stopPropagation(); setLbIndex(i); }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
             )}
-
-            <div className="flex-1 min-w-0">
-              {visiblePhotos.length === 0 ? (
-                <p className="text-velaro-muted text-center py-16">Geen foto&apos;s in deze map.</p>
-              ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
-                  {visiblePhotos.map((url, i) => {
-                    const sel = selected.has(url);
-                    return (
-                      <div
-                        key={url}
-                        className={`photo-item relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all select-none ${
-                          sel
-                            ? 'border-velaro-gold shadow-[0_0_0_1px_rgba(216,189,113,0.4)]'
-                            : 'border-white/[0.08] hover:border-white/25'
-                        }`}
-                        onClick={() => toggleSelect(url)}
-                      >
-                        <WatermarkedImage src={url} alt={`Foto ${i + 1}`} className="w-full aspect-square block pointer-events-none" coverSquare />
-                        {sel && (
-                          <div className="absolute inset-0 bg-velaro-gold/15 flex items-center justify-center pointer-events-none">
-                            <div className="bg-velaro-gold rounded-full w-8 h-8 flex items-center justify-center">
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B0B0D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            </div>
-                          </div>
-                        )}
-                        <div className={`absolute bottom-0 inset-x-0 px-2 py-1.5 text-center text-xs font-semibold pointer-events-none ${sel ? 'bg-velaro-gold/80 text-velaro-bg' : 'bg-black/55 text-white'}`}>
-                          {sel ? '✓ Geselecteerd' : (submitted ? '' : 'Selecteer')}
-                        </div>
-                        <button
-                          className="photo-zoom-btn z-10"
-                          title="Vergroten"
-                          onClick={e => { e.stopPropagation(); setLbIndex(i); }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
           </div>
         )}
 
