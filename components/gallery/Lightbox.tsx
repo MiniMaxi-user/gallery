@@ -29,11 +29,17 @@ export default function Lightbox({ photos, index, selected, submitted, onClose, 
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/93 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center overflow-hidden"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
+      <WatermarkedImage
+        src={url}
+        alt={`Foto ${index + 1}`}
+        className="w-full h-full object-contain"
+      />
+
       <button
-        className="fixed top-4 right-4 bg-white/10 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+        className="fixed top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors z-20"
         onClick={onClose}
         title="Sluiten (Esc)"
       >
@@ -43,30 +49,24 @@ export default function Lightbox({ photos, index, selected, submitted, onClose, 
       {photos.length > 1 && (
         <>
           <button
-            className="fixed left-2.5 top-1/2 -translate-y-1/2 bg-white/10 text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="fixed left-2 sm:left-2.5 top-1/2 -translate-y-1/2 bg-black/50 text-white text-3xl w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors z-20"
             onClick={() => onNav(-1)}
+            title="Vorige"
           >
             ‹
           </button>
           <button
-            className="fixed right-2.5 top-1/2 -translate-y-1/2 bg-white/10 text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="fixed right-2 sm:right-2.5 top-1/2 -translate-y-1/2 bg-black/50 text-white text-3xl w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors z-20"
             onClick={() => onNav(1)}
+            title="Volgende"
           >
             ›
           </button>
         </>
       )}
 
-      <div className="max-w-[calc(100vw-160px)] max-h-[calc(100vh-120px)] flex items-center justify-center">
-        <WatermarkedImage
-          src={url}
-          alt={`Foto ${index + 1}`}
-          className="max-w-full max-h-[calc(100vh-120px)] rounded-md"
-        />
-      </div>
-
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-4 whitespace-nowrap z-10">
-        <span className="text-white/50 text-sm">{index + 1} / {photos.length}</span>
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-4 whitespace-nowrap z-20 bg-black/50 rounded-full pl-4 pr-2 py-2">
+        <span className="text-white/70 text-sm">{index + 1} / {photos.length}</span>
         {!submitted && (
           <button
             onClick={onToggle}
