@@ -130,6 +130,20 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
     saveAlbums(albums.map(a => a.id === albumId ? { ...a, coverPhoto: url } : a));
   }
 
+  async function setShootCover(url: string) {
+    try {
+      const updated = await apiFetch(`/api/shoots/${shoot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coverPhoto: url }),
+      });
+      setShoot(updated);
+      onUpdated(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Opslaan mislukt');
+    }
+  }
+
   function assignPhoto(url: string, albumId: string | null) {
     saveAlbums(albums.map(a => {
       const photos = a.photos.filter(p => p !== url);
@@ -218,7 +232,12 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
         photos: a.photos.filter(p => p !== url),
         coverPhoto: a.coverPhoto === url ? undefined : a.coverPhoto,
       }));
-      const updated = { ...shoot, photos: shoot.photos.filter(p => p !== url), albums: nextAlbums };
+      const updated = {
+        ...shoot,
+        photos: shoot.photos.filter(p => p !== url),
+        coverPhoto: shoot.coverPhoto === url ? undefined : shoot.coverPhoto,
+        albums: nextAlbums,
+      };
       setAlbums(nextAlbums);
       setShoot(updated);
       onUpdated(updated);
@@ -444,7 +463,7 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
                   const activeAlbum = albums.find(a => a.id === selectedAlbumId);
                   const isCover = activeAlbum
                     ? (activeAlbum.coverPhoto ?? activeAlbum.photos[0]) === url
-                    : false;
+                    : (shoot.coverPhoto ?? shoot.photos[0]) === url;
                   return (
                     <div key={url} className={`relative rounded-lg overflow-hidden border-2 ${sel ? 'border-velaro-gold' : 'border-white/[0.08]'}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -454,17 +473,19 @@ export default function ShootDetail({ shoot: initialShoot, onBack, onUpdated, on
                           ✓ {i + 1}
                         </div>
                       )}
-                      {activeAlbum && (
-                        <button
-                          className={`absolute top-1.5 ${sel ? 'left-14' : 'left-1.5'} w-6 h-6 rounded-full flex items-center justify-center text-xs shadow ${
-                            isCover ? 'bg-velaro-gold text-velaro-bg' : 'bg-black/60 text-white hover:bg-black/80'
-                          }`}
-                          title={isCover ? 'Omslagfoto van deze map' : 'Als omslagfoto instellen'}
-                          onClick={() => setCover(activeAlbum.id, url)}
-                        >
-                          ★
-                        </button>
-                      )}
+                      <button
+                        className={`absolute top-1.5 ${sel ? 'left-14' : 'left-1.5'} w-6 h-6 rounded-full flex items-center justify-center text-xs shadow ${
+                          isCover ? 'bg-velaro-gold text-velaro-bg' : 'bg-black/60 text-white hover:bg-black/80'
+                        }`}
+                        title={
+                          activeAlbum
+                            ? (isCover ? 'Omslagfoto van deze map' : 'Als omslagfoto instellen')
+                            : (isCover ? 'Omslagfoto van de shoot' : 'Als omslagfoto van de shoot instellen')
+                        }
+                        onClick={() => activeAlbum ? setCover(activeAlbum.id, url) : setShootCover(url)}
+                      >
+                        ★
+                      </button>
                       {canDelete && (
                         <button
                           className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center leading-none shadow"

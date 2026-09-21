@@ -46,7 +46,7 @@ Individuele fotografen loggen in met hun eigen e-mail/wachtwoord, opgeslagen in 
 ## Database
 Schema (zie ook Supabase SQL Editor van het project):
 - `photographers` — id (uuid), name, email (uniek), password, registered_at, is_active
-- `shoots` — id, photographer_id (FK, on delete cascade), name, date, client_name, client_email, password, photos (jsonb), albums (jsonb), selections (jsonb), selection_submitted, status
+- `shoots` — id, photographer_id (FK, on delete cascade), name, date, client_name, client_email, password, photos (jsonb), cover_photo (text, nullable — omslagfoto van de shoot), albums (jsonb), selections (jsonb), selection_submitted, status
 
 Een fotograaf verwijderen verwijdert automatisch (cascade) al zijn/haar shoots uit de database; de bijbehorende foto's in Vercel Blob worden expliciet in de API-route opgeruimd.
 
