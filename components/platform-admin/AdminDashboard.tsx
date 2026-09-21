@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import type { PhotographerUser } from '@/lib/types';
 
 interface Stats {
@@ -13,8 +12,6 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter();
-
   const [photographers, setPhotographers] = useState<PhotographerUser[]>([]);
   const [stats,         setStats]         = useState<Stats | null>(null);
   const [loading,       setLoading]       = useState(true);
@@ -48,8 +45,13 @@ export default function AdminDashboard() {
   useEffect(() => { loadData(); }, [loadData]);
 
   async function handleLogout() {
-    await fetch('/api/admin/auth', { method: 'DELETE' });
-    router.push('/admin');
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+    } catch (err) {
+      console.error('Uitloggen mislukt:', err);
+    } finally {
+      window.location.href = '/admin';
+    }
   }
 
   async function toggleActive(p: PhotographerUser) {

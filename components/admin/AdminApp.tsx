@@ -34,10 +34,15 @@ export default function AdminApp() {
   }
 
   async function handleLogout() {
-    await fetch('/api/auth', { method: 'DELETE' });
-    setView('auth');
-    setShoots([]);
-    setCurrent(null);
+    try {
+      await fetch('/api/auth', { method: 'DELETE' });
+    } catch (err) {
+      console.error('Uitloggen mislukt:', err);
+    } finally {
+      setView('auth');
+      setShoots([]);
+      setCurrent(null);
+    }
   }
 
   function handleOpenShoot(shoot: Shoot) {
