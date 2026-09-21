@@ -29,8 +29,10 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       photos: a.photos.filter(p => p !== url),
       coverPhoto: a.coverPhoto === url ? undefined : a.coverPhoto,
     }));
+    const patch: Parameters<typeof updateShoot>[1] = { photos, albums };
+    if (shoot.coverPhoto === url) patch.coverPhoto = null;
 
-    await updateShoot(Number(id), { photos, albums });
+    await updateShoot(Number(id), patch);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('DELETE /api/shoots/[id]/photos failed:', err);

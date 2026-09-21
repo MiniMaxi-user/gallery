@@ -14,6 +14,7 @@ export interface Shoot {
   clientEmail: string;
   password: string;
   photos: string[];
+  coverPhoto?: string;
   albums?: Album[];
   selections: string[];
   selectionSubmitted?: boolean;

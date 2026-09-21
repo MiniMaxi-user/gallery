@@ -23,6 +23,7 @@ interface ShootRow {
   client_email: string;
   password: string;
   photos: string[];
+  cover_photo: string | null;
   albums: Album[];
   selections: string[];
   selection_submitted: boolean;
@@ -48,6 +49,7 @@ function mapShoot(row: ShootRow): Shoot {
     clientEmail:        row.client_email,
     password:           row.password,
     photos:             row.photos ?? [],
+    coverPhoto:         row.cover_photo ?? undefined,
     albums:             row.albums ?? [],
     selections:         row.selections ?? [],
     selectionSubmitted: row.selection_submitted,
@@ -114,6 +116,7 @@ export async function updateShoot(id: number, patch: Partial<{
   clientEmail: string;
   password: string;
   photos: string[];
+  coverPhoto: string | null;
   albums: Album[];
   selections: string[];
   selectionSubmitted: boolean;
@@ -126,6 +129,7 @@ export async function updateShoot(id: number, patch: Partial<{
   if (patch.clientEmail !== undefined)         row.client_email         = patch.clientEmail;
   if (patch.password !== undefined)            row.password             = patch.password;
   if (patch.photos !== undefined)              row.photos               = patch.photos;
+  if (patch.coverPhoto !== undefined)          row.cover_photo          = patch.coverPhoto;
   if (patch.albums !== undefined)              row.albums               = patch.albums;
   if (patch.selections !== undefined)          row.selections           = patch.selections;
   if (patch.selectionSubmitted !== undefined)  row.selection_submitted  = patch.selectionSubmitted;

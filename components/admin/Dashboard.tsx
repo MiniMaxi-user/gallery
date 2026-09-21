@@ -45,23 +45,32 @@ export default function Dashboard({ shoots, onOpen, onNew, onSettings, onLogout 
           <div className="flex flex-col gap-3">
             {shoots.map(s => {
               const b = statusBadge(s);
+              const cover = s.coverPhoto ?? s.photos[0];
               return (
                 <div
                   key={s.id}
-                  className="bg-velaro-surf1 rounded-2xl border border-white/[0.08] p-5 cursor-pointer hover:border-white/[0.16] hover:bg-velaro-surf2 transition-all"
+                  className="bg-velaro-surf1 rounded-2xl border border-white/[0.08] p-5 cursor-pointer hover:border-white/[0.16] hover:bg-velaro-surf2 transition-all flex gap-4"
                   onClick={() => onOpen(s)}
                 >
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div>
-                      <p className="font-medium text-white text-lg">{s.name}</p>
-                      <p className="text-xs text-velaro-muted mt-0.5">{s.clientName} · {s.clientEmail}</p>
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-white/5 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="font-medium text-white text-lg">{s.name}</p>
+                        <p className="text-xs text-velaro-muted mt-0.5">{s.clientName} · {s.clientEmail}</p>
+                      </div>
+                      <span className={`badge ${b.cls}`}>{b.label}</span>
                     </div>
-                    <span className={`badge ${b.cls}`}>{b.label}</span>
-                  </div>
-                  <div className="flex gap-5 mt-3 text-xs text-velaro-muted">
-                    <span>Datum: {formatDate(s.date)}</span>
-                    <span>{s.photos.length} foto&apos;s</span>
-                    <span>{s.selections.length} geselecteerd</span>
+                    <div className="flex gap-5 mt-3 text-xs text-velaro-muted">
+                      <span>Datum: {formatDate(s.date)}</span>
+                      <span>{s.photos.length} foto&apos;s</span>
+                      <span>{s.selections.length} geselecteerd</span>
+                    </div>
                   </div>
                 </div>
               );
